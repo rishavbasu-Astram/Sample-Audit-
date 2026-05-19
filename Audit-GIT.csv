@@ -1,0 +1,9 @@
+﻿File,Purpose
+`CONTRIBUTING.md`,How others can contribute
+`CODE_OF_CONDUCT.md`,Community standards
+`SECURITY.md`,Vulnerability reporting
+`LICENSE`,MIT License (free to use)
+`.github/workflows/ci.yml`,Automated testing on every push
+`.github/ISSUE_TEMPLATE/`,Bug report & feature request forms
+`.github/PULL_REQUEST_TEMPLATE.md`,PR description template
+`DEPLOYMENT_GUIDE.md`,Full deployment documentation

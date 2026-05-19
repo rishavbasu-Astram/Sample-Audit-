@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Financial Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .sidebar-item { transition: all 0.2s; }
+        .sidebar-item:hover { background: rgba(59, 130, 246, 0.1); }
+        .sidebar-item.active { background: rgba(59, 130, 246, 0.15); border-right: 3px solid #3b82f6; }
+        .card-hover { transition: all 0.2s; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .slide-in { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .modal-backdrop { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <div id="app" class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-white border-r border-slate-200 flex flex-col transition-all duration-300">
+            <div class="p-6 border-b border-slate-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <i data-lucide="landmark" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg text-slate-900 leading-tight">FinManage</h1>
+                        <p class="text-xs text-slate-500">Enterprise v1.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 overflow-y-auto p-4 space-y-1">
+                <button onclick="navigateTo('dashboard')" class="sidebar-item active w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium" data-page="dashboard">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button onclick="navigateTo('cashflow')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-600" data-page="cashflow">
+                    <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+                    <span>Cash Flow</span>
+                </button>
+                <button onclick="navigateTo('invoicing')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-600" data-page="invoicing">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                    <span>Invoicing</span>
+                </button>
+                <button onclick="navigateTo('ledger')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-600" data-page="ledger">
+                    <i data-lucide="book-open" class="w-5 h-5"></i>
+                    <span>General Ledger</span>
+                </button>
+                <button onclick="navigateTo('audit')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-600" data-page="audit">
+                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    <span>Audit & Compliance</span>
+                </button>
+                <button onclick="navigateTo('reports')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-600" data-page="reports">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                    <span>Reports & Analytics</span>
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-slate-200">
+                <div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-slate-50">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <span class="text-sm font-semibold text-blue-700">MR</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-slate-900 truncate">Michael Roberts</p>
+                        <p class="text-xs text-slate-500">CFO</p>
+                    </div>
+                    <button onclick="logout()" class="text-slate-400 hover:text-slate-600">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <!-- Header -->
+            <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 id="page-title" class="text-2xl font-bold text-slate-900">Dashboard</h2>
+                        <p id="page-subtitle" class="text-sm text-slate-500 mt-1">Real-time financial overview</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button class="relative p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
+                            <i data-lucide="bell" class="w-5 h-5"></i>
+                            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+                        <button class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            New Transaction
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div id="content" class="p-8">
+                <!-- Content injected by JavaScript -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="modal-container" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop absolute inset-0" onclick="closeModal()"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div id="modal-content" class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto fade-in"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== MOCK DATA ====================
+        const mockData = {
+            accounts: [
+                { id: "acc-001", name: "Primary Operating", number: "****4521", bank: "JPMorgan Chase", currency: "USD", balance: 2458900.50, type: "checking" },
+                { id: "acc-002", name: "Payroll Account", number: "****7834", bank: "Bank of America", currency: "USD", balance: 450000.00, type: "checking" },
+                { id: "acc-003", name: "Emergency Reserve", number: "****9921", bank: "Wells Fargo", currency: "USD", balance: 1200000.00, type: "savings" },
+                { id: "acc-004", name: "EUR Operations", number: "****3345", bank: "Deutsche Bank", currency: "EUR", balance: 890000.00, type: "checking" },
+                { id: "acc-005", name: "Investment Portfolio", number: "****6678", bank: "Fidelity", currency: "USD", balance: 3200000.00, type: "investment" }
+            ],
+            transactions: [
+                { id: "t1", date: "2026-05-08", desc: "Client Payment - TechCorp", amount: 125000, type: "income", status: "cleared", account: "Primary Operating" },
+                { id: "t2", date: "2026-05-08", desc: "AWS Cloud Services", amount: -45000, type: "expense", status: "cleared", account: "Primary Operating" },
+                { id: "t3", date: "2026-05-07", desc: "Salary Transfer - Engineering", amount: -320000, type: "expense", status: "reconciled", account: "Payroll Account" },
+                { id: "t4", date: "2026-05-07", desc: "EU Client Payment", amount: 75000, type: "income", status: "cleared", account: "EUR Operations" },
+                { id: "t5", date: "2026-05-06", desc: "Office Rent - May 2026", amount: -28000, type: "expense", status: "reconciled", account: "Primary Operating" },
+                { id: "t6", date: "2026-05-05", desc: "Interest Income", amount: 1200, type: "income", status: "reconciled", account: "Emergency Reserve" },
+                { id: "t7", date: "2026-05-05", desc: "Marketing Campaign - Q2", amount: -65000, type: "expense", status: "pending", account: "Primary Operating" },
+                { id: "t8", date: "2026-05-04", desc: "Software License Renewal", amount: -24000, type: "expense", status: "reconciled", account: "Primary Operating" }
+            ],
+            invoices: [
+                { id: "inv1", number: "INV-2026-0045", client: "TechCorp Inc", amount: 118800, status: "paid", date: "2026-04-15", due: "2026-05-15", currency: "USD" },
+                { id: "inv2", number: "INV-2026-0046", client: "Global Logistics Ltd", amount: 91800, status: "overdue", date: "2026-03-20", due: "2026-04-20", currency: "USD" },
+                { id: "inv3", number: "INV-2026-0047", client: "SaaS Ventures LLC", amount: 16200, status: "sent", date: "2026-05-01", due: "2026-05-31", currency: "USD" },
+                { id: "inv4", number: "INV-2026-0048", client: "Healthcare Systems Inc", amount: 75600, status: "draft", date: "2026-05-08", due: "2026-06-08", currency: "USD" },
+                { id: "inv5", number: "INV-2026-0049", client: "FinTech Solutions", amount: 71400, status: "paid", date: "2026-04-01", due: "2026-04-30", currency: "EUR" }
+            ],
+            journalEntries: [
+                { id: "je1", number: "JE-2026-0102", date: "2026-05-08", desc: "Record software revenue - TechCorp", ref: "INV-2026-0045", debits: 118800, credits: 118800, status: "posted" },
+                { id: "je2", number: "JE-2026-0103", date: "2026-05-08", desc: "AWS cloud infrastructure expense", ref: "AWS-MAY-2026", debits: 45000, credits: 45000, status: "posted" },
+                { id: "je3", number: "JE-2026-0104", date: "2026-05-07", desc: "Payroll accrual - Engineering", ref: "PAY-MAY-001", debits: 320000, credits: 320000, status: "posted" },
+                { id: "je4", number: "JE-2026-0105", date: "2026-05-06", desc: "Office rent payment", ref: "RENT-MAY-2026", debits: 28000, credits: 28000, status: "posted" },
+                { id: "je5", number: "JE-2026-0106", date: "2026-05-08", desc: "Marketing campaign prepayment", ref: "MKT-Q2-2026", debits: 65000, credits: 65000, status: "draft" }
+            ],
+            auditLogs: [
+                { id: "a1", time: "2026-05-08 09:30", user: "Sarah Chen", action: "LOGIN", entity: "user", desc: "User login successful", ip: "192.168.1.100" },
+                { id: "a2", time: "2026-05-08 10:30", user: "Emily Watson", action: "CREATE", entity: "journal_entry", desc: "Created JE-2026-0102", ip: "192.168.1.102" },
+                { id: "a3", time: "2026-05-08 10:35", user: "Emily Watson", action: "POST", entity: "journal_entry", desc: "Posted JE-2026-0102", ip: "192.168.1.102" },
+                { id: "a4", time: "2026-05-08 11:00", user: "Emily Watson", action: "CREATE", entity: "journal_entry", desc: "Created JE-2026-0103", ip: "192.168.1.102" },
+                { id: "a5", time: "2026-05-08 11:05", user: "Michael Roberts", action: "APPROVE", entity: "journal_entry", desc: "Approved JE-2026-0103", ip: "192.168.1.101" },
+                { id: "a6", time: "2026-05-08 12:00", user: "James Liu", action: "READ", entity: "journal_entry", desc: "Viewed JE-2026-0102", ip: "192.168.1.103" },
+                { id: "a7", time: "2026-05-08 12:15", user: "James Liu", action: "EXPORT", entity: "report", desc: "Exported audit trail", ip: "192.168.1.103" },
+                { id: "a8", time: "2026-05-08 13:00", user: "Sarah Chen", action: "UPDATE", entity: "user", desc: "Updated user permissions", ip: "192.168.1.100" }
+            ],
+            compliance: [
+                { id: "c1", framework: "SOC2", control: "CC6.1", title: "Logical Access Security", status: "compliant", risk: "high", owner: "Sarah Chen" },
+                { id: "c2", framework: "SOC2", control: "CC7.1", title: "System Monitoring", status: "compliant", risk: "high", owner: "Sarah Chen" },
+                { id: "c3", framework: "SOC2", control: "CC8.1", title: "Change Management", status: "partial", risk: "medium", owner: "Michael Roberts" },
+                { id: "c4", framework: "GDPR", control: "ART-17", title: "Right to Erasure", status: "compliant", risk: "high", owner: "Sarah Chen" },
+                { id: "c5", framework: "GDPR", control: "ART-32", title: "Data Encryption", status: "compliant", risk: "high", owner: "Sarah Chen" },
+                { id: "c6", framework: "PCI-DSS", control: "REQ-3", title: "Cardholder Data Protection", status: "compliant", risk: "critical", owner: "Michael Roberts" },
+                { id: "c7", framework: "PCI-DSS", control: "REQ-8", title: "User Authentication", status: "partial", risk: "critical", owner: "Sarah Chen" }
+            ],
+            kpis: [
+                { name: "Total Cash Position", value: 4108900.50, prev: 3850000, change: 6.72, trend: "up", target: 4000000 },
+                { name: "Monthly Recurring Revenue", value: 486000, prev: 450000, change: 8.00, trend: "up", target: 500000 },
+                { name: "Days Sales Outstanding", value: 32, prev: 28, change: 14.29, trend: "down", target: 30 },
+                { name: "Operating Margin", value: 24.5, prev: 22.1, change: 10.86, trend: "up", target: 25.0 },
+                { name: "Current Ratio", value: 2.8, prev: 2.6, change: 7.69, trend: "up", target: 2.5 },
+                { name: "Burn Rate", value: 385000, prev: 420000, change: -8.33, trend: "up", target: 350000 }
+            ]
+        };
+
+        let currentPage = 'dashboard';
+        let charts = {};
+
+        // ==================== UTILITIES ====================
+        function formatCurrency(amount, currency = 'USD') {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount);
+        }
+
+        function formatDate(dateStr) {
+            return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                paid: 'bg-emerald-100 text-emerald-800',
+                sent: 'bg-blue-100 text-blue-800',
+                draft: 'bg-slate-100 text-slate-800',
+                overdue: 'bg-red-100 text-red-800',
+                posted: 'bg-emerald-100 text-emerald-800',
+                compliant: 'bg-emerald-100 text-emerald-800',
+                partial: 'bg-amber-100 text-amber-800',
+                pending: 'bg-amber-100 text-amber-800',
+                cleared: 'bg-blue-100 text-blue-800',
+                reconciled: 'bg-emerald-100 text-emerald-800'
+            };
+            return colors[status] || 'bg-slate-100 text-slate-800';
+        }
+
+        function daysOverdue(dueDate) {
+            const due = new Date(dueDate);
+            const today = new Date();
+            const diff = Math.floor((today - due) / (1000 * 60 * 60 * 24));
+            return diff > 0 ? diff : 0;
+        }
+
+        // ==================== NAVIGATION ====================
+        function navigateTo(page) {
+            currentPage = page;
+
+            // Update sidebar
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.classList.remove('active');
+                item.classList.add('text-slate-600');
+                if (item.dataset.page === page) {
+                    item.classList.add('active');
+                    item.classList.remove('text-slate-600');
+                }
+            });
+
+            // Update header
+            const titles = {
+                dashboard: { title: 'Dashboard', subtitle: 'Real-time financial overview' },
+                cashflow: { title: 'Cash Flow Management', subtitle: 'Track AR/AP and forecast liquidity' },
+                invoicing: { title: 'Invoicing & Billing', subtitle: 'Manage invoices and recurring billing' },
+                ledger: { title: 'General Ledger', subtitle: 'Double-entry bookkeeping and journal entries' },
+                audit: { title: 'Audit & Compliance', subtitle: 'Immutable trails and regulatory controls' },
+                reports: { title: 'Reports & Analytics', subtitle: 'Financial statements and variance analysis' }
+            };
+            document.getElementById('page-title').textContent = titles[page].title;
+            document.getElementById('page-subtitle').textContent = titles[page].subtitle;
+
+            // Render content
+            renderPage(page);
+            lucide.createIcons();
+        }
+
+        function renderPage(page) {
+            const content = document.getElementById('content');
+            content.innerHTML = '';
+
+            switch(page) {
+                case 'dashboard': renderDashboard(content); break;
+                case 'cashflow': renderCashFlow(content); break;
+                case 'invoicing': renderInvoicing(content); break;
+                case 'ledger': renderLedger(content); break;
+                case 'audit': renderAudit(content); break;
+                case 'reports': renderReports(content); break;
+            }
+        }
+
+        // ==================== DASHBOARD ====================
+        function renderDashboard(container) {
+            const totalCash = mockData.accounts.reduce((sum, acc) => sum + acc.balance, 0);
+            const totalAR = mockData.invoices.filter(i => i.status === 'sent' || i.status === 'overdue').reduce((sum, i) => sum + i.amount, 0);
+            const totalAP = Math.abs(mockData.transactions.filter(t => t.type === 'expense' && t.status === 'pending').reduce((sum, t) => sum + t.amount, 0));
+            const overdueInvoices = mockData.invoices.filter(i => i.status === 'overdue');
+
+            container.innerHTML = `
+                <div class="space-y-6 fade-in">
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-xl border border-slate-200 p-6 card-hover">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="p-2 bg-blue-50 rounded-lg">
+                                    <i data-lucide="wallet" class="w-5 h-5 text-blue-600"></i>
+                                </div>
+                                <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+6.7%</span>
+                            </div>
+                            <p class="text-sm text-slate-500">Total Cash Position</p>
+                            <p class="text-2xl font-bold text-slate-900 mt-1">${formatCurrency(totalCash)}</p>
+                        </div>
+                        <div class="bg-white rounded-xl border border-slate-200 p-6 card-hover">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="p-2 bg-amber-50 rounded-lg">
+                                    <i data-lucide="trending-up" class="w-5 h-5 text-amber-600"></i>
+                                </div>
+                                <span class="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-full">+8.0%</span>
+                            </div>
+                            <p class="text-sm text-slate-500">Monthly Recurring Revenue</p>
+                            <p class="text-2xl font-bold text-slate-900 mt-1">${formatCurrency(486000)}</p>
+                        </div>
+                        <div class="bg-white rounded-xl border border-slate-200 p-6 card-hover">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="p-2 bg-emerald-50 rounded-lg">
+                                    <i data-lucide="arrow-down-left" class="w-5 h-5 text-emerald-600"></i>
+                                </div>
+                                <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+2.5%</span>
+                            </div>
+                            <p class="text-sm text-slate-500">Accounts Receivable</p>
+                            <p class="text-2xl font-bold text-slate-900 mt-1">${formatCurrency(totalAR)}</p>
+                        </div>
+                        <div class="bg-white rounded-xl border border-slate-200 p-6 card-hover">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="p-2 bg-red-50 rounded-lg">
+                                    <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+                                </div>
+                                <span class="text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded-full">${overdueInvoices.length} items</span>
+                            </div>
+                            <p class="text-sm text-slate-500">Overdue Invoices</p>
+                            <p class="text-2xl font-bold text-slate-900 mt-1">${formatCurrency(overdueInvoices.reduce((s, i) => s + i.amount, 0))}</p>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-6">
+                            <h3 class="text-lg font-semibold text-slate-900 mb-4">Cash Flow Trend</h3>
+                            <canvas id="cashFlowChart" height="120"></canvas>
+                        </div>
+                        <div class="bg-white rounded-xl border border-slate-200 p-6">
+                            <h3 class="text-lg font-semibold text-slate-900 mb-4">Expense Breakdown</h3>
+                            <canvas id="expenseChart" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl border border-slate-200 p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-slate-900">Recent Transactions</h3>
+                                <button onclick="navigateTo('cashflow')" class="text-sm text-blue-600 hover:text-blue-700 font-medium">View All</button>
+                            </div>
+                            <div class="space-y-3">
+                                ${mockData.transactions.slice(0, 5).map(t => `
+                                    <div class="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-lg ${t.amount > 0 ? 'bg-emerald-50' : 'bg-red-50'} flex items-center justify-center">
+                                                <i data-lucide="${t.amount > 0 ? 'arrow-down-left' : 'arrow-up-right'}" class="w-5 h-5 ${t.amount > 0 ? 'text-emerald-600' : 'text-red-600'}"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-900">${t.desc}</p>
+                                                <p class="text-xs text-slate-500">${t.account} • ${formatDate(t.date)}</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm font-semibold ${t.amount > 0 ? 'text-emerald-600' : 'text-red-600'}">${t.amount > 0 ? '+' : ''}${formatCurrency(t.amount)}</p>
+                                            <span class="text-xs px-2 py-0.5 rounded-full ${getStatusColor(t.status)}">${t.status}</span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl border border-slate-200 p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-slate-900">Pending Invoices</h3>
+                                <button onclick="navigateTo('invoicing')" class="text-sm text-blue-600 hover:text-blue-700 font-medium">View All</button>
+                            </div>
+                            <div class="space-y-3">
+                                ${mockData.invoices.filter(i => i.status !== 'paid').map(inv => `
+                                    <div class="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                                                <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-900">${inv.client}</p>
+                                                <p class="text-xs text-slate-500">${inv.number} • Due ${formatDate(inv.due)}</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm font-semibold text-slate-900">${formatCurrency(inv.amount, inv.currency)}</p>
+                                            <span class="text-xs px-2 py-0.5 rounded-full ${getStatusColor(inv.status)}">${inv.status}</span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Initialize charts
+            setTimeout(() => {
+                initDashboardCharts();
+            }, 100);
+        }
+
+        function initDashboardCharts() {
+            // Cash Flow Chart
+            const cfCtx = document.getElementById('cashFlowChart');
+            if (cfCtx) {
+                charts.cashFlow = new Chart(cfCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'Inflow',
+                            data: [3200000, 3400000, 3100000, 3800000, 4108900, 3950000],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }, {
+                            label: 'Outflow',
+                            data: [2800000, 2900000, 2700000, 3100000, 2950000, 3050000],
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'top' } },
+                        scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + (v/1000000).toFixed(1) + 'M' } } }
+                    }
+                });
+            }
+
+            // Expense Chart
+            const expCtx = document.getElementById('expenseChart');
+            if (expCtx) {
+                charts.expense = new Chart(expCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Salaries', 'Cloud', 'Rent', 'Marketing', 'Software', 'Other'],
+                        datasets: [{
+                            data: [1280000, 540000, 336000, 390000, 288000, 102000],
+                            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#6b7280']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right' } }
+                    }
+                });
+            }
+        }
+
+        // ==================== CASH FLOW ====================
+        function renderCashFlow(container) {
+            container.innerHTML = `
+                <div class="space-y-6 fade-in">
+                    <!-- Account Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${mockData.accounts.map(acc => `
+                            <div class="bg-white rounded-xl border border-slate-200 p-6 card-hover cursor-pointer" onclick="showAccountDetails('${acc.id}')">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="p-2 ${acc.type === 'savings' ? 'bg-emerald-50' : acc.type === 'investment' ? 'bg-purple-50' : 'bg-blue-50'} rounded-lg">
+                                        <i data-lucide="${acc.type === 'savings' ? 'piggy-bank' : acc.type === 'investment' ? 'trending-up' : 'credit-card'}" class="w-5 h-5 ${acc.type === 'savings' ? 'text-emerald-600' : acc.type === 'investment' ? 'text-purple-600' : 'text-blue-600'}"></i>
+                                    </div>
+                                    <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-full">${acc.currency}</span>
+                                </div>
+                                <p class="text-sm text-slate-500">${acc.name}</p>
+                                <p class="text-2xl font-bold text-slate-900 mt-1">${formatCurrency(acc.balance, acc.currency)}</p>
+                                <p class="text-xs text-slate-400 mt-2">${acc.bank} • ${acc.number}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Transactions Table -->
+                    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                        <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-slate-900">Recent Transactions</h3>
+                            <div class="flex gap-2">
+                                <button class="px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50">Filter</button>
+                                <button class="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Export</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Description</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Account</th>
+                                        <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Amount</th>
+                                        <th class="px-6 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    ${mockData.transactions.map(t => `
+                                        <tr class="hover:bg-slate-50 transition-colors">
+                                            <td class="px-6 py-4 text-sm text-slate-900">${formatDate(t.date)}</td>
+                                            <td class="px-6 py-4 text-sm text-slate-900">${t.desc}</td>
+                                            <td class="px-6 py-4 text-sm text-slate-500">${t.account}</td>
+                                            <td class="px-6 py-4 text-sm font-semibold text-right ${t.amount > 0 ? 'text-emerald-600' : 'text-red-600'}">${t.amount > 0 ? '+' : ''}${formatCurrency(t.amount)}</td>
+                                            <td class="px-6 py-4 text-center">
+                                                <span class="text-xs px-2 py-1 rounded-full ${getStatusColor(t.status)}">${t.status}</span>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Cash Flow Forecast -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-6">
+                        <h3 class="text-lg font-semibold text-slate-900 mb-4">90-Day Cash Flow Forecast</h3>
+                        <canvas id="forecastChart" height="100"></canvas>
+                    </div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                const ctx = document.getElementById('forecastChart');
+                if (ctx) {
+                    charts.forecast = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['May 15', 'May 30', 'Jun 15', 'Jun 30', 'Jul 15', 'Jul 31'],
+                            datasets: [{
+                                label: 'Projected Net Position',
+                                data: [230000, 220000, 140000, 250000, 190000, 230000],
+                                backgroundColor: '#3b82f6',
+                                borderRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' } } }
+                        }
+                    });
+                }
+                lucide.createIcons();
+            }, 100);
+        }
+
+        // ==================== INVOICING ====================
+        function renderInvoicing(container) {
+            const statusFilter = document.getElementById('inv-filter')?.value || 'all';
+            let filtered = mockData.invoices;
+            if (statusFilter !== 'all') filtered = filtered.filter(i => i.status === statusFilter);
+
+            container.innerHTML = `
+                <div class="space-y-6 fade-in">
+                    <!-- Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-xl border border-slate-200 p-6">
+                            <p class="text-sm text-slate-500">Total Outstanding</p>
+                            <p class="text-2xl font-bold text-slate-900 mt-1">${formatCurrency(mockData.invoices.filter(i => i.status !== 'paid').reduce((s, i) => s + i.amount, 0))}</p>
+                        </div>
+                        <div class="bg-white rounded-xl border border-slate-200 p-6">
+                            <p class="text-sm text-slate-500">Overdue</p>
+                            <p class="text-2xl font-bold text-red-600 mt-1">${formatCurrency(mockData.invoices.filter(i => i.status === 'overdue').reduce((s, i) => s + i.amount, 0))}</p>
+                        </div>
+                        <div class="bg-white rounded-xl border border-slate-200 p-6">
+                            <p class="text-sm text-slate-500">Paid This Month</p>
+                            <p class="text-2xl font-bold text-emerald-600 mt-1">${formatCurrency(mockData.invoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.amount, 0))}</p>
+                        </div>
+                        <div class="bg-white rounded-xl border border-slate-200 p-6">
+                            <p class="text-sm text-slate-500">Draft Invoices</p>
+                            <p class="text-2xl font-bold text-slate-900 mt-1">${mockData.invoices.filter(i => i.status === 'draft').length}</p>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Table -->
+                    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                        <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <h3 class="text-lg font-semibold text-slate-900">All Invoices</h3>
+                                <select id="inv-filter" onchange="renderInvoicing(document.getElementById('content'))" class="text-sm border border-slate-200 rounded-lg px-3 py-2">
+                                    <option value="all">All Statuses</option>
+                                    <option value="draft">Draft</option>
+                                    <option value="sent">Sent</option>
+                                    <option value="paid">Paid</option>
+                                    <option value="overdue">Overdue</option>
+                                </select>
+                            </div>
+                            <button onclick="showCreateInvoiceModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                Create Invoice
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Invoice #</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Client</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Due Date</th>
+                                        <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Amount</th>
+                                        <th class="px-6 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Status</th>
+                                        <th class="px-6 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    ${filtered.map(inv => {
+                                        const overdue = daysOverdue(inv.due);
+                                        return `
+                                        <tr class="hover:bg-slate-50 transition-colors">
+                                            <td class="px-6 py-4 text-sm font-medium text-blue-600 cursor-pointer hover:underline">${inv.number}</td>
+                                            <td class="px-6 py-4 text-sm text-slate-900">${inv.client}</td>
+                                            <td class="px-6 py-4 text-sm text-slate-500">${formatDate(inv.date)}</td>
+                                            <td class="px-6 py-4 text-sm ${overdue > 0 ? 'text-red-600 font-medium' : 'text-slate-500'}">${formatDate(inv.due)} ${overdue > 0 ? `(${overdue}d overdue)` : ''}</td>
+                                            <td class="px-6 py-4 text-sm font-semibold text-right text-slate-900">${formatCurrency(inv.amount, inv.currency)}</td>
+                                            <td class="px-6 py-4 text-center">
+                                                <span class="text-xs px-2 py-1 rounded-full ${getStatusColor(inv.status)}">${inv.status}</span>
+                                            </td>
+                                            <td class="px-6 py-4 text-center">
+                                                <button class="text-slate-400 hover:text-slate-600">
+                                                    <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => lucide.createIcons(), 50);
+        }
+
+        // ==================== GENERAL LEDGER ====================
+        function renderLedger(container) {
+            container.innerHTML = `
+                <div class="space-y-6 fade-in">
+                    <!-- Chart of Accounts Summary -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white rounded-xl border border-slate-200 p-6">
+                            <p class="text-sm text-slate-500">Total Assets</p>
+                            <p class="text-2xl font-bold text-emerald-600 mt-1">${formatCurrency(7546500)}</p>
+                        </div>
+                        <div class="bg-white rounded-xl border border-slate-200 p-6">
+                            <p class="text-sm text-slate-500">Total Liabilities</p>
+                            <p class="text-2xl font-bold text-red-600 mt-1">${formatCurrency(1782000)}</p>
+                        </div>
+                        <div class="bg-white rounded-xl border border-slate-200 p-6">
+                            <p class="text-sm text-slate-500">Total Equity</p>
+                            <p class="text-2xl font-bold text-blue-600 mt-1">${formatCurrency(4855500)}</p>
+                        </div>
+                    </div>
+
+                    <!-- Journal Entries -->
+                    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                        <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-slate-900">Journal Entries</h3>
+                            <button onclick="showCreateJournalModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                New Entry
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Entry #</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Description</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Reference</th>
+                                        <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Debits</th>
+                                        <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Credits</th>
+                                        <th class="px-6 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    ${mockData.journalEntries.map(je => `
+                                        <tr class="hover:bg-slate-50 transition-colors cursor-pointer" onclick="showJournalDetails('${je.id}')">
+                                            <td class="px-6 py-4 text-sm font-medium text-blue-600">${je.number}</td>
+                                            <td class="px-6 py-4 text-sm text-slate-500">${formatDate(je.date)}</td>
+                                            <td class="px-6 py-4 text-sm text-slate-900">${je.desc}</td>
+                                            <td class="px-6 py-4 text-sm text-slate-500">${je.ref}</td>
+                                            <td class="px-6 py-4 text-sm font-medium text-right text-slate-900">${formatCurrency(je.debits)}</td>
+                                            <td class="px-6 py-4 text-sm font-medium text-right text-slate-900">${formatCurrency(je.credits)}</td>
+                                            <td class="px-6 py-4 text-center">
+                                                <span class="text-xs px-2 py-1 rounded-full ${getStatusColor(je.status)}">${je.status}</span>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => lucide.createIcons(), 50);
+        }
+
+        // ==================== AUDIT & COMPLIANCE ====================
+        function renderAudit(container) {
+            container.innerHTML = `
+                <div class="space-y-6 fade-in">
+                    <!-- Compliance Overview -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white rounded-xl border border-slate-200 p-6">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-sm text-slate-500">SOC 2 Type II</p>
+                                <span class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800">Compliant</span>
+                            </div>
+                            <p class="text-2xl font-bold text-slate-900">3/3</p>
+                            <p class="text-xs text-slate-400 mt-1">Controls assessed</p>
+                        </div>
+                        <div class="bg-white rounded-xl border border-slate-200 p-6">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-sm text-slate-500">GDPR</p>
+                                <span class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800">Compliant</span>
+                            </div>
+                            <p class="text-2xl font-bold text-slate-900">2/2</p>
+                            <p class="text-xs text-slate-400 mt-1">Controls assessed</p>
+                        </div>
+                        <div class="bg-white rounded-xl border border-slate-200 p-6">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-sm text-slate-500">PCI-DSS</p>
+                                <span class="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800">Partial</span>
+                            </div>
+                            <p class="text-2xl font-bold text-slate-900">1/2</p>
+                            <p class="text-xs text-slate-400 mt-1">Controls assessed</p>
+                        </div>
+                    </div>
+
+                    <!-- Compliance Controls -->
+                    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                        <div class="p-6 border-b border-slate-200">
+                            <h3 class="text-lg font-semibold text-slate-900">Compliance Controls</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Framework</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Control ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Title</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Owner</th>
+                                        <th class="px-6 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Risk</th>
+                                        <th class="px-6 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    ${mockData.compliance.map(c => `
+                                        <tr class="hover:bg-slate-50 transition-colors">
+                                            <td class="px-6 py-4 text-sm font-medium text-slate-900">${c.framework}</td>
+                                            <td class="px-6 py-4 text-sm text-slate-500">${c.control}</td>
+                                            <td class="px-6 py-4 text-sm text-slate-900">${c.title}</td>
+                                            <td class="px-6 py-4 text-sm text-slate-500">${c.owner}</td>
+                                            <td class="px-6 py-4 text-center">
+                                                <span class="text-xs px-2 py-1 rounded-full ${c.risk === 'critical' ? 'bg-red-100 text-red-800' : c.risk === 'high' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'}">${c.risk}</span>
+                                            </td>
+                                            <td class="px-6 py-4 text-center">
+                                                <span class="text-xs px-2 py-1 rounded-full ${getStatusColor(c.status)}">${c.status}</span>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Audit Trail -->
+                    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                        <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-slate-900">Immutable Audit Trail</h3>
+                            <button onclick="exportAuditLog()" class="px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-2">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                Export
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Timestamp</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">User</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Action</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Entity</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Description</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">IP Address</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    ${mockData.auditLogs.map(log => `
+                                        <tr class="hover:bg-slate-50 transition-colors">
+                                            <td class="px-6 py-4 text-sm text-slate-500 font-mono">${log.time}</td>
+                                            <td class="px-6 py-4 text-sm font-medium text-slate-900">${log.user}</td>
+                                            <td class="px-6 py-4 text-sm">
+                                                <span class="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 font-medium">${log.action}</span>
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-slate-500">${log.entity}</td>
+                                            <td class="px-6 py-4 text-sm text-slate-900">${log.desc}</td>
+                                            <td class="px-6 py-4 text-sm text-slate-500 font-mono">${log.ip}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => lucide.createIcons(), 50);
+        }
+
+        // ==================== REPORTS ====================
+        function renderReports(container) {
+            container.innerHTML = `
+                <div class="space-y-6 fade-in">
+                    <!-- Financial Statements -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <button onclick="showReport('pnl')" class="bg-white rounded-xl border border-slate-200 p-6 card-hover text-left">
+                            <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4">
+                                <i data-lucide="trending-up" class="w-6 h-6 text-blue-600"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-slate-900">Profit & Loss</h3>
+                            <p class="text-sm text-slate-500 mt-1">Income statement for the period</p>
+                            <p class="text-xs text-slate-400 mt-3">Last updated: May 8, 2026</p>
+                        </button>
+                        <button onclick="showReport('balance')" class="bg-white rounded-xl border border-slate-200 p-6 card-hover text-left">
+                            <div class="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center mb-4">
+                                <i data-lucide="scale" class="w-6 h-6 text-emerald-600"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-slate-900">Balance Sheet</h3>
+                            <p class="text-sm text-slate-500 mt-1">Assets, liabilities, and equity</p>
+                            <p class="text-xs text-slate-400 mt-3">Last updated: May 8, 2026</p>
+                        </button>
+                        <button onclick="showReport('cashflow')" class="bg-white rounded-xl border border-slate-200 p-6 card-hover text-left">
+                            <div class="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center mb-4">
+                                <i data-lucide="banknote" class="w-6 h-6 text-purple-600"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-slate-900">Cash Flow Statement</h3>
+                            <p class="text-sm text-slate-500 mt-1">Operating, investing, financing</p>
+                            <p class="text-xs text-slate-400 mt-3">Last updated: May 8, 2026</p>
+                        </button>
+                    </div>
+
+                    <!-- Budget vs Actual -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-6">
+                        <h3 class="text-lg font-semibold text-slate-900 mb-4">Budget vs Actual Variance</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Account</th>
+                                        <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Budgeted</th>
+                                        <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Actual</th>
+                                        <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Variance</th>
+                                        <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase">%</th>
+                                        <th class="px-6 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-6 py-4 text-sm font-medium text-slate-900">Software Revenue</td>
+                                        <td class="px-6 py-4 text-sm text-right text-slate-500">${formatCurrency(2000000)}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-slate-900">${formatCurrency(2100000)}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-emerald-600 font-medium">+${formatCurrency(100000)}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-emerald-600">+5.0%</td>
+                                        <td class="px-6 py-4 text-center"><span class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800">Favorable</span></td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-6 py-4 text-sm font-medium text-slate-900">Services Revenue</td>
+                                        <td class="px-6 py-4 text-sm text-right text-slate-500">${formatCurrency(900000)}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-slate-900">${formatCurrency(850000)}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-red-600 font-medium">-${formatCurrency(50000)}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-red-600">-5.6%</td>
+                                        <td class="px-6 py-4 text-center"><span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-800">Unfavorable</span></td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-6 py-4 text-sm font-medium text-slate-900">Salaries & Wages</td>
+                                        <td class="px-6 py-4 text-sm text-right text-slate-500">${formatCurrency(1200000)}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-slate-900">${formatCurrency(1280000)}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-red-600 font-medium">-${formatCurrency(80000)}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-red-600">-6.7%</td>
+                                        <td class="px-6 py-4 text-center"><span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-800">Unfavorable</span></td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-6 py-4 text-sm font-medium text-slate-900">Cloud Infrastructure</td>
+                                        <td class="px-6 py-4 text-sm text-right text-slate-500">${formatCurrency(500000)}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-slate-900">${formatCurrency(540000)}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-red-600 font-medium">-${formatCurrency(40000)}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-red-600">-8.0%</td>
+                                        <td class="px-6 py-4 text-center"><span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-800">Unfavorable</span></td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-6 py-4 text-sm font-medium text-slate-900">Marketing & Advertising</td>
+                                        <td class="px-6 py-4 text-sm text-right text-slate-500">${formatCurrency(400000)}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-slate-900">${formatCurrency(390000)}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-emerald-600 font-medium">+${formatCurrency(10000)}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-emerald-600">+2.5%</td>
+                                        <td class="px-6 py-4 text-center"><span class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800">Favorable</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => lucide.createIcons(), 50);
+        }
+
+        // ==================== MODALS ====================
+        function showModal(content) {
+            document.getElementById('modal-content').innerHTML = content;
+            document.getElementById('modal-container').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            document.getElementById('modal-container').classList.add('hidden');
+        }
+
+        function showCreateInvoiceModal() {
+            showModal(`
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-slate-900">Create New Invoice</h3>
+                        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <form onsubmit="event.preventDefault(); closeModal(); alert('Invoice created successfully!');" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Client Name</label>
+                                <input type="text" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter client name" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Client Email</label>
+                                <input type="email" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="client@example.com" required>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Issue Date</label>
+                                <input type="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Due Date</label>
+                                <input type="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                            <textarea class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="3" placeholder="Invoice description..."></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Amount</label>
+                                <input type="number" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.00" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Currency</label>
+                                <select class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="USD">USD</option>
+                                    <option value="EUR">EUR</option>
+                                    <option value="GBP">GBP</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-3 pt-4">
+                            <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50">Cancel</button>
+                            <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Create Invoice</button>
+                        </div>
+                    </form>
+                </div>
+            `);
+        }
+
+        function showCreateJournalModal() {
+            showModal(`
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-slate-900">New Journal Entry</h3>
+                        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <form onsubmit="event.preventDefault(); closeModal(); alert('Journal entry created successfully!');" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                            <input type="text" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Entry description" required>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Date</label>
+                                <input type="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Reference</label>
+                                <input type="text" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Reference number">
+                            </div>
+                        </div>
+                        <div class="border border-slate-200 rounded-lg p-4 space-y-3">
+                            <h4 class="text-sm font-semibold text-slate-700">Journal Lines</h4>
+                            <div class="grid grid-cols-3 gap-3">
+                                <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm">
+                                    <option>Select Account</option>
+                                    <option>Cash and Equivalents (1000)</option>
+                                    <option>Accounts Receivable (1100)</option>
+                                    <option>Software Revenue (4000)</option>
+                                </select>
+                                <input type="number" class="px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Debit">
+                                <input type="number" class="px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Credit">
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm">
+                                    <option>Select Account</option>
+                                    <option>Cash and Equivalents (1000)</option>
+                                    <option>Accounts Receivable (1100)</option>
+                                    <option>Software Revenue (4000)</option>
+                                </select>
+                                <input type="number" class="px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Debit">
+                                <input type="number" class="px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Credit">
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-3 pt-4">
+                            <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50">Cancel</button>
+                            <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save as Draft</button>
+                        </div>
+                    </form>
+                </div>
+            `);
+        }
+
+        function showReport(type) {
+            const reports = {
+                pnl: {
+                    title: 'Profit & Loss Statement',
+                    subtitle: 'For the period January 1, 2026 to April 30, 2026',
+                    content: `
+                        <div class="space-y-4">
+                            <div class="border-b border-slate-200 pb-4">
+                                <h4 class="text-sm font-semibold text-slate-500 uppercase mb-2">Revenue</h4>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Software Revenue</span><span class="text-sm font-medium text-slate-900">${formatCurrency(2100000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Services Revenue</span><span class="text-sm font-medium text-slate-900">${formatCurrency(850000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Subscription Revenue</span><span class="text-sm font-medium text-slate-900">${formatCurrency(486000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Other Revenue</span><span class="text-sm font-medium text-slate-900">${formatCurrency(1200)}</span></div>
+                                <div class="flex justify-between py-2 border-t border-slate-100 mt-2"><span class="text-sm font-semibold text-slate-900">Total Revenue</span><span class="text-sm font-bold text-slate-900">${formatCurrency(3437200)}</span></div>
+                            </div>
+                            <div class="border-b border-slate-200 pb-4">
+                                <h4 class="text-sm font-semibold text-slate-500 uppercase mb-2">Expenses</h4>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Cost of Goods Sold</span><span class="text-sm font-medium text-slate-900">${formatCurrency(320000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Salaries & Wages</span><span class="text-sm font-medium text-slate-900">${formatCurrency(1280000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Rent & Facilities</span><span class="text-sm font-medium text-slate-900">${formatCurrency(336000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Cloud Infrastructure</span><span class="text-sm font-medium text-slate-900">${formatCurrency(540000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Marketing & Advertising</span><span class="text-sm font-medium text-slate-900">${formatCurrency(390000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Other Expenses</span><span class="text-sm font-medium text-slate-900">${formatCurrency(570000)}</span></div>
+                                <div class="flex justify-between py-2 border-t border-slate-100 mt-2"><span class="text-sm font-semibold text-slate-900">Total Expenses</span><span class="text-sm font-bold text-slate-900">${formatCurrency(2948000)}</span></div>
+                            </div>
+                            <div class="flex justify-between py-2 bg-slate-50 rounded-lg px-4">
+                                <span class="text-base font-bold text-slate-900">Net Income</span>
+                                <span class="text-base font-bold text-emerald-600">${formatCurrency(489200)}</span>
+                            </div>
+                        </div>
+                    `
+                },
+                balance: {
+                    title: 'Balance Sheet',
+                    subtitle: 'As of April 30, 2026',
+                    content: `
+                        <div class="space-y-4">
+                            <div class="border-b border-slate-200 pb-4">
+                                <h4 class="text-sm font-semibold text-slate-500 uppercase mb-2">Assets</h4>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Cash and Equivalents</span><span class="text-sm font-medium text-slate-900">${formatCurrency(4108900)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Accounts Receivable</span><span class="text-sm font-medium text-slate-900">${formatCurrency(167600)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Inventory</span><span class="text-sm font-medium text-slate-900">${formatCurrency(320000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Property & Equipment</span><span class="text-sm font-medium text-slate-900">${formatCurrency(2500000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Software Licenses</span><span class="text-sm font-medium text-slate-900">${formatCurrency(450000)}</span></div>
+                                <div class="flex justify-between py-2 border-t border-slate-100 mt-2"><span class="text-sm font-semibold text-slate-900">Total Assets</span><span class="text-sm font-bold text-slate-900">${formatCurrency(7546500)}</span></div>
+                            </div>
+                            <div class="border-b border-slate-200 pb-4">
+                                <h4 class="text-sm font-semibold text-slate-500 uppercase mb-2">Liabilities</h4>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Accounts Payable</span><span class="text-sm font-medium text-slate-900">${formatCurrency(187000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Accrued Expenses</span><span class="text-sm font-medium text-slate-900">${formatCurrency(95000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Long-term Debt</span><span class="text-sm font-medium text-slate-900">${formatCurrency(1500000)}</span></div>
+                                <div class="flex justify-between py-2 border-t border-slate-100 mt-2"><span class="text-sm font-semibold text-slate-900">Total Liabilities</span><span class="text-sm font-bold text-slate-900">${formatCurrency(1782000)}</span></div>
+                            </div>
+                            <div class="border-b border-slate-200 pb-4">
+                                <h4 class="text-sm font-semibold text-slate-500 uppercase mb-2">Equity</h4>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Common Stock</span><span class="text-sm font-medium text-slate-900">${formatCurrency(1000000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Retained Earnings</span><span class="text-sm font-medium text-slate-900">${formatCurrency(3855500)}</span></div>
+                                <div class="flex justify-between py-2 border-t border-slate-100 mt-2"><span class="text-sm font-semibold text-slate-900">Total Equity</span><span class="text-sm font-bold text-slate-900">${formatCurrency(4855500)}</span></div>
+                            </div>
+                            <div class="flex justify-between py-2 bg-slate-50 rounded-lg px-4">
+                                <span class="text-base font-bold text-slate-900">Total Liabilities & Equity</span>
+                                <span class="text-base font-bold text-slate-900">${formatCurrency(6637500)}</span>
+                            </div>
+                        </div>
+                    `
+                },
+                cashflow: {
+                    title: 'Cash Flow Statement',
+                    subtitle: 'For the period January 1, 2026 to April 30, 2026',
+                    content: `
+                        <div class="space-y-4">
+                            <div class="border-b border-slate-200 pb-4">
+                                <h4 class="text-sm font-semibold text-slate-500 uppercase mb-2">Operating Activities</h4>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Net Income</span><span class="text-sm font-medium text-slate-900">${formatCurrency(489200)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Depreciation & Amortization</span><span class="text-sm font-medium text-slate-900">${formatCurrency(174000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Changes in Working Capital</span><span class="text-sm font-medium text-slate-900">${formatCurrency(-85000)}</span></div>
+                                <div class="flex justify-between py-2 border-t border-slate-100 mt-2"><span class="text-sm font-semibold text-slate-900">Net Operating Cash</span><span class="text-sm font-bold text-emerald-600">${formatCurrency(578200)}</span></div>
+                            </div>
+                            <div class="border-b border-slate-200 pb-4">
+                                <h4 class="text-sm font-semibold text-slate-500 uppercase mb-2">Investing Activities</h4>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Purchase of Equipment</span><span class="text-sm font-medium text-slate-900">${formatCurrency(-250000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Software Development</span><span class="text-sm font-medium text-slate-900">${formatCurrency(-180000)}</span></div>
+                                <div class="flex justify-between py-2 border-t border-slate-100 mt-2"><span class="text-sm font-semibold text-slate-900">Net Investing Cash</span><span class="text-sm font-bold text-red-600">${formatCurrency(-430000)}</span></div>
+                            </div>
+                            <div class="border-b border-slate-200 pb-4">
+                                <h4 class="text-sm font-semibold text-slate-500 uppercase mb-2">Financing Activities</h4>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Debt Repayment</span><span class="text-sm font-medium text-slate-900">${formatCurrency(-75000)}</span></div>
+                                <div class="flex justify-between py-1"><span class="text-sm text-slate-700">Stock Issuance</span><span class="text-sm font-medium text-slate-900">${formatCurrency(500000)}</span></div>
+                                <div class="flex justify-between py-2 border-t border-slate-100 mt-2"><span class="text-sm font-semibold text-slate-900">Net Financing Cash</span><span class="text-sm font-bold text-emerald-600">${formatCurrency(425000)}</span></div>
+                            </div>
+                            <div class="flex justify-between py-2 bg-slate-50 rounded-lg px-4">
+                                <span class="text-base font-bold text-slate-900">Net Increase in Cash</span>
+                                <span class="text-base font-bold text-emerald-600">${formatCurrency(573200)}</span>
+                            </div>
+                            <div class="flex justify-between py-2 px-4">
+                                <span class="text-sm text-slate-500">Beginning Cash Balance</span>
+                                <span class="text-sm font-medium text-slate-900">${formatCurrency(3535700)}</span>
+                            </div>
+                            <div class="flex justify-between py-2 px-4">
+                                <span class="text-sm text-slate-500">Ending Cash Balance</span>
+                                <span class="text-sm font-bold text-slate-900">${formatCurrency(4108900)}</span>
+                            </div>
+                        </div>
+                    `
+                }
+            };
+
+            const report = reports[type];
+            showModal(`
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-900">${report.title}</h3>
+                            <p class="text-sm text-slate-500">${report.subtitle}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="alert('Report exported to PDF')" class="px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-2">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                Export
+                            </button>
+                            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
+                                <i data-lucide="x" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                    ${report.content}
+                </div>
+            `);
+        }
+
+        function exportAuditLog() {
+            alert('Audit log exported to CSV format with SHA-256 integrity hashes.');
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to log out?')) {
+                alert('Logged out successfully. All session tokens cleared.');
+                location.reload();
+            }
+        }
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            navigateTo('dashboard');
+        });
+    </script>
+</body>
+</html>
