@@ -20,7 +20,8 @@ router.get("/bank-accounts", async (req, res): Promise<void> => {
 router.post("/bank-accounts", async (req, res): Promise<void> => {
   const { name, accountNumber, bankName, accountType, currency, currentBalance } = req.body;
   if (!name || !accountType || !currency || currentBalance == null) { res.status(400).json({ error: "Missing required fields" }); return; }
-  const [a] = await db.insert(bankAccountsTable).values({ name, accountNumber, bankName, accountType, currency, currentBalance: String(currentBalance) }).returning();
+  const [inserted] = await db.insert(bankAccountsTable).values({ name, accountNumber, bankName, accountType, currency, currentBalance: String(currentBalance) }).$returningId();
+  const [a] = await db.select().from(bankAccountsTable).where(eq(bankAccountsTable.id, inserted.id));
   res.status(201).json(formatAccount(a));
 });
 
@@ -37,7 +38,8 @@ router.patch("/bank-accounts/:id", async (req, res): Promise<void> => {
   if (req.body.name !== undefined) updates.name = req.body.name;
   if (req.body.isActive !== undefined) updates.isActive = req.body.isActive;
   if (req.body.currentBalance !== undefined) updates.currentBalance = String(req.body.currentBalance);
-  const [a] = await db.update(bankAccountsTable).set(updates).where(eq(bankAccountsTable.id, id)).returning();
+  await db.update(bankAccountsTable).set(updates).where(eq(bankAccountsTable.id, id));
+  const [a] = await db.select().from(bankAccountsTable).where(eq(bankAccountsTable.id, id));
   if (!a) { res.status(404).json({ error: "Not found" }); return; }
   res.json(formatAccount(a));
 });
@@ -59,7 +61,8 @@ router.post("/bank-transactions", async (req, res): Promise<void> => {
   const prevBal = parseFloat(String(acct?.bal ?? "0"));
   const newBal = type === "credit" ? prevBal + parseFloat(String(amount)) : prevBal - parseFloat(String(amount));
   await db.update(bankAccountsTable).set({ currentBalance: String(newBal) }).where(eq(bankAccountsTable.id, accountId));
-  const [t] = await db.insert(bankTransactionsTable).values({ accountId, date, type, amount: String(amount), description, reference, balance: String(newBal) }).returning();
+  const [inserted] = await db.insert(bankTransactionsTable).values({ accountId, date, type, amount: String(amount), description, reference, balance: String(newBal) }).$returningId();
+  const [t] = await db.select().from(bankTransactionsTable).where(eq(bankTransactionsTable.id, inserted.id));
   res.status(201).json(formatTx(t));
 });
 

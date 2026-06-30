@@ -25,10 +25,11 @@ router.post("/assets", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Missing required fields" });
     return;
   }
-  const [asset] = await db
+  const [inserted] = await db
     .insert(assetsTable)
     .values({ name, assetType, purchaseDate, purchasePrice: String(purchasePrice), currentValue: String(currentValue), depreciationMethod, status: status ?? "active", notes })
-    .returning();
+    .$returningId();
+  const [asset] = await db.select().from(assetsTable).where(eq(assetsTable.id, inserted.id));
   res.status(201).json({ ...asset, purchasePrice: parseFloat(String(asset.purchasePrice)), currentValue: parseFloat(String(asset.currentValue)), createdAt: asset.createdAt.toISOString() });
 });
 
@@ -47,15 +48,17 @@ router.patch("/assets/:id", async (req, res): Promise<void> => {
   if (currentValue !== undefined) updates.currentValue = String(currentValue);
   if (status !== undefined) updates.status = status;
   if (notes !== undefined) updates.notes = notes;
-  const [asset] = await db.update(assetsTable).set(updates).where(eq(assetsTable.id, id)).returning();
+  await db.update(assetsTable).set(updates).where(eq(assetsTable.id, id));
+  const [asset] = await db.select().from(assetsTable).where(eq(assetsTable.id, id));
   if (!asset) { res.status(404).json({ error: "Asset not found" }); return; }
   res.json({ ...asset, purchasePrice: parseFloat(String(asset.purchasePrice)), currentValue: parseFloat(String(asset.currentValue)), createdAt: asset.createdAt.toISOString() });
 });
 
 router.delete("/assets/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [asset] = await db.delete(assetsTable).where(eq(assetsTable.id, id)).returning();
+  const [asset] = await db.select().from(assetsTable).where(eq(assetsTable.id, id));
   if (!asset) { res.status(404).json({ error: "Asset not found" }); return; }
+  await db.delete(assetsTable).where(eq(assetsTable.id, id));
   res.sendStatus(204);
 });
 

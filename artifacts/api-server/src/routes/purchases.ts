@@ -34,7 +34,8 @@ router.get("/vendors", async (req, res): Promise<void> => {
 router.post("/vendors", async (req, res): Promise<void> => {
   const { name, email, phone, company, address, taxNumber, currency } = req.body;
   if (!name) { res.status(400).json({ error: "Name is required" }); return; }
-  const [v] = await db.insert(vendorsTable).values({ name, email, phone, company, address, taxNumber, currency: currency ?? "USD" }).returning();
+  const [inserted] = await db.insert(vendorsTable).values({ name, email, phone, company, address, taxNumber, currency: currency ?? "USD" }).$returningId();
+  const [v] = await db.select().from(vendorsTable).where(eq(vendorsTable.id, inserted.id));
   res.status(201).json(fv(v));
 });
 
@@ -49,15 +50,17 @@ router.patch("/vendors/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const updates: Record<string, unknown> = {};
   for (const f of ["name","email","phone","company","address","currency"]) { if (req.body[f] !== undefined) updates[f] = req.body[f]; }
-  const [v] = await db.update(vendorsTable).set(updates).where(eq(vendorsTable.id, id)).returning();
+  await db.update(vendorsTable).set(updates).where(eq(vendorsTable.id, id));
+  const [v] = await db.select().from(vendorsTable).where(eq(vendorsTable.id, id));
   if (!v) { res.status(404).json({ error: "Vendor not found" }); return; }
   res.json(fv(v));
 });
 
 router.delete("/vendors/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [v] = await db.delete(vendorsTable).where(eq(vendorsTable.id, id)).returning();
+  const [v] = await db.select().from(vendorsTable).where(eq(vendorsTable.id, id));
   if (!v) { res.status(404).json({ error: "Vendor not found" }); return; }
+  await db.delete(vendorsTable).where(eq(vendorsTable.id, id));
   res.sendStatus(204);
 });
 
@@ -77,7 +80,8 @@ router.post("/expenses", async (req, res): Promise<void> => {
   if (!date || !category || amount == null || !paymentMethod) { res.status(400).json({ error: "Missing required fields" }); return; }
   const tax = taxAmount ?? 0;
   const total = parseFloat(String(amount)) + parseFloat(String(tax));
-  const [e] = await db.insert(expensesTable).values({ vendorId, date, category, amount: String(amount), taxAmount: String(tax), total: String(total), paymentMethod, reference, notes }).returning();
+  const [inserted] = await db.insert(expensesTable).values({ vendorId, date, category, amount: String(amount), taxAmount: String(tax), total: String(total), paymentMethod, reference, notes }).$returningId();
+  const [e] = await db.select().from(expensesTable).where(eq(expensesTable.id, inserted.id));
   const vendorName = vendorId ? await getVendorName(vendorId) : null;
   res.status(201).json({ ...e, vendorName, amount: parseFloat(String(e.amount)), taxAmount: parseFloat(String(e.taxAmount)), total: parseFloat(String(e.total)), createdAt: e.createdAt.toISOString() });
 });
@@ -96,7 +100,8 @@ router.patch("/expenses/:id", async (req, res): Promise<void> => {
   for (const f of ["category","notes"]) { if (req.body[f] !== undefined) updates[f] = req.body[f]; }
   if (req.body.amount !== undefined) updates.amount = String(req.body.amount);
   if (req.body.taxAmount !== undefined) updates.taxAmount = String(req.body.taxAmount);
-  const [e] = await db.update(expensesTable).set(updates).where(eq(expensesTable.id, id)).returning();
+  await db.update(expensesTable).set(updates).where(eq(expensesTable.id, id));
+  const [e] = await db.select().from(expensesTable).where(eq(expensesTable.id, id));
   if (!e) { res.status(404).json({ error: "Not found" }); return; }
   const vendorName = e.vendorId ? await getVendorName(e.vendorId) : null;
   res.json({ ...e, vendorName, amount: parseFloat(String(e.amount)), taxAmount: parseFloat(String(e.taxAmount)), total: parseFloat(String(e.total)), createdAt: e.createdAt.toISOString() });
@@ -104,8 +109,9 @@ router.patch("/expenses/:id", async (req, res): Promise<void> => {
 
 router.delete("/expenses/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [e] = await db.delete(expensesTable).where(eq(expensesTable.id, id)).returning();
+  const [e] = await db.select().from(expensesTable).where(eq(expensesTable.id, id));
   if (!e) { res.status(404).json({ error: "Not found" }); return; }
+  await db.delete(expensesTable).where(eq(expensesTable.id, id));
   res.sendStatus(204);
 });
 
@@ -120,7 +126,8 @@ router.get("/recurring-expenses", async (req, res): Promise<void> => {
 router.post("/recurring-expenses", async (req, res): Promise<void> => {
   const { vendorId, category, amount, frequency, nextDate, notes } = req.body;
   if (!category || amount == null || !frequency || !nextDate) { res.status(400).json({ error: "Missing required fields" }); return; }
-  const [r] = await db.insert(recurringExpensesTable).values({ vendorId, category, amount: String(amount), frequency, nextDate, notes }).returning();
+  const [inserted] = await db.insert(recurringExpensesTable).values({ vendorId, category, amount: String(amount), frequency, nextDate, notes }).$returningId();
+  const [r] = await db.select().from(recurringExpensesTable).where(eq(recurringExpensesTable.id, inserted.id));
   const vendorName = vendorId ? await getVendorName(vendorId) : null;
   res.status(201).json({ ...r, vendorName, amount: parseFloat(String(r.amount)), createdAt: r.createdAt.toISOString() });
 });
@@ -138,7 +145,8 @@ router.patch("/recurring-expenses/:id", async (req, res): Promise<void> => {
   const updates: Record<string, unknown> = {};
   for (const f of ["frequency","nextDate","status"]) { if (req.body[f] !== undefined) updates[f] = req.body[f]; }
   if (req.body.amount !== undefined) updates.amount = String(req.body.amount);
-  const [r] = await db.update(recurringExpensesTable).set(updates).where(eq(recurringExpensesTable.id, id)).returning();
+  await db.update(recurringExpensesTable).set(updates).where(eq(recurringExpensesTable.id, id));
+  const [r] = await db.select().from(recurringExpensesTable).where(eq(recurringExpensesTable.id, id));
   if (!r) { res.status(404).json({ error: "Not found" }); return; }
   const vendorName = r.vendorId ? await getVendorName(r.vendorId) : null;
   res.json({ ...r, vendorName, amount: parseFloat(String(r.amount)), createdAt: r.createdAt.toISOString() });
@@ -146,8 +154,9 @@ router.patch("/recurring-expenses/:id", async (req, res): Promise<void> => {
 
 router.delete("/recurring-expenses/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [r] = await db.delete(recurringExpensesTable).where(eq(recurringExpensesTable.id, id)).returning();
+  const [r] = await db.select().from(recurringExpensesTable).where(eq(recurringExpensesTable.id, id));
   if (!r) { res.status(404).json({ error: "Not found" }); return; }
+  await db.delete(recurringExpensesTable).where(eq(recurringExpensesTable.id, id));
   res.sendStatus(204);
 });
 
@@ -170,7 +179,8 @@ router.post("/purchase-orders", async (req, res): Promise<void> => {
   const taxAmount = items.reduce((s: number, li: { taxRate?: number; amount?: number }) => s + ((li.taxRate ?? 0) / 100) * (li.amount ?? 0), 0);
   const total = subtotal + taxAmount;
   const poNumber = `PO-${Date.now()}`;
-  const [o] = await db.insert(purchaseOrdersTable).values({ poNumber, vendorId, date, expectedDate, notes, lineItems: items, subtotal: String(subtotal), taxAmount: String(taxAmount), total: String(total) }).returning();
+  const [inserted] = await db.insert(purchaseOrdersTable).values({ poNumber, vendorId, date, expectedDate, notes, lineItems: items, subtotal: String(subtotal), taxAmount: String(taxAmount), total: String(total) }).$returningId();
+  const [o] = await db.select().from(purchaseOrdersTable).where(eq(purchaseOrdersTable.id, inserted.id));
   const name = await getVendorName(vendorId);
   res.status(201).json({ ...o, vendorName: name, subtotal: parseFloat(String(o.subtotal)), taxAmount: parseFloat(String(o.taxAmount)), total: parseFloat(String(o.total)), lineItems: (o.lineItems as unknown[]) ?? [], createdAt: o.createdAt.toISOString() });
 });
@@ -187,7 +197,8 @@ router.patch("/purchase-orders/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const updates: Record<string, unknown> = {};
   for (const f of ["expectedDate","status","notes"]) { if (req.body[f] !== undefined) updates[f] = req.body[f]; }
-  const [o] = await db.update(purchaseOrdersTable).set(updates).where(eq(purchaseOrdersTable.id, id)).returning();
+  await db.update(purchaseOrdersTable).set(updates).where(eq(purchaseOrdersTable.id, id));
+  const [o] = await db.select().from(purchaseOrdersTable).where(eq(purchaseOrdersTable.id, id));
   if (!o) { res.status(404).json({ error: "Not found" }); return; }
   const name = await getVendorName(o.vendorId);
   res.json({ ...o, vendorName: name, subtotal: parseFloat(String(o.subtotal)), taxAmount: parseFloat(String(o.taxAmount)), total: parseFloat(String(o.total)), lineItems: (o.lineItems as unknown[]) ?? [], createdAt: o.createdAt.toISOString() });
@@ -195,8 +206,9 @@ router.patch("/purchase-orders/:id", async (req, res): Promise<void> => {
 
 router.delete("/purchase-orders/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [o] = await db.delete(purchaseOrdersTable).where(eq(purchaseOrdersTable.id, id)).returning();
+  const [o] = await db.select().from(purchaseOrdersTable).where(eq(purchaseOrdersTable.id, id));
   if (!o) { res.status(404).json({ error: "Not found" }); return; }
+  await db.delete(purchaseOrdersTable).where(eq(purchaseOrdersTable.id, id));
   res.sendStatus(204);
 });
 
@@ -221,7 +233,8 @@ router.post("/bills", async (req, res): Promise<void> => {
   const taxAmount = items.reduce((s: number, li: { taxRate?: number; amount?: number }) => s + ((li.taxRate ?? 0) / 100) * (li.amount ?? 0), 0);
   const total = subtotal + taxAmount;
   const billNumber = `BILL-${Date.now()}`;
-  const [b] = await db.insert(billsTable).values({ billNumber, vendorId, date, dueDate, notes, lineItems: items, subtotal: String(subtotal), taxAmount: String(taxAmount), total: String(total), amountDue: String(total), amountPaid: "0" }).returning();
+  const [inserted] = await db.insert(billsTable).values({ billNumber, vendorId, date, dueDate, notes, lineItems: items, subtotal: String(subtotal), taxAmount: String(taxAmount), total: String(total), amountDue: String(total), amountPaid: "0" }).$returningId();
+  const [b] = await db.select().from(billsTable).where(eq(billsTable.id, inserted.id));
   const name = await getVendorName(vendorId);
   res.status(201).json({ ...b, vendorName: name, subtotal: parseFloat(String(b.subtotal)), taxAmount: parseFloat(String(b.taxAmount)), total: parseFloat(String(b.total)), amountPaid: parseFloat(String(b.amountPaid)), amountDue: parseFloat(String(b.amountDue)), lineItems: (b.lineItems as unknown[]) ?? [], createdAt: b.createdAt.toISOString() });
 });
@@ -238,7 +251,8 @@ router.patch("/bills/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const updates: Record<string, unknown> = {};
   for (const f of ["dueDate","status","notes"]) { if (req.body[f] !== undefined) updates[f] = req.body[f]; }
-  const [b] = await db.update(billsTable).set(updates).where(eq(billsTable.id, id)).returning();
+  await db.update(billsTable).set(updates).where(eq(billsTable.id, id));
+  const [b] = await db.select().from(billsTable).where(eq(billsTable.id, id));
   if (!b) { res.status(404).json({ error: "Not found" }); return; }
   const name = await getVendorName(b.vendorId);
   res.json({ ...b, vendorName: name, subtotal: parseFloat(String(b.subtotal)), taxAmount: parseFloat(String(b.taxAmount)), total: parseFloat(String(b.total)), amountPaid: parseFloat(String(b.amountPaid)), amountDue: parseFloat(String(b.amountDue)), lineItems: (b.lineItems as unknown[]) ?? [], createdAt: b.createdAt.toISOString() });
@@ -246,8 +260,9 @@ router.patch("/bills/:id", async (req, res): Promise<void> => {
 
 router.delete("/bills/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [b] = await db.delete(billsTable).where(eq(billsTable.id, id)).returning();
+  const [b] = await db.select().from(billsTable).where(eq(billsTable.id, id));
   if (!b) { res.status(404).json({ error: "Not found" }); return; }
+  await db.delete(billsTable).where(eq(billsTable.id, id));
   res.sendStatus(204);
 });
 
@@ -262,7 +277,8 @@ router.get("/recurring-bills", async (req, res): Promise<void> => {
 router.post("/recurring-bills", async (req, res): Promise<void> => {
   const { vendorId, frequency, nextDate, amount, notes } = req.body;
   if (!vendorId || !frequency || !nextDate || amount == null) { res.status(400).json({ error: "Missing required fields" }); return; }
-  const [r] = await db.insert(recurringBillsTable).values({ vendorId, frequency, nextDate, amount: String(amount), notes }).returning();
+  const [inserted] = await db.insert(recurringBillsTable).values({ vendorId, frequency, nextDate, amount: String(amount), notes }).$returningId();
+  const [r] = await db.select().from(recurringBillsTable).where(eq(recurringBillsTable.id, inserted.id));
   const name = await getVendorName(vendorId);
   res.status(201).json({ ...r, vendorName: name, amount: parseFloat(String(r.amount)), createdAt: r.createdAt.toISOString() });
 });
@@ -280,7 +296,8 @@ router.patch("/recurring-bills/:id", async (req, res): Promise<void> => {
   const updates: Record<string, unknown> = {};
   for (const f of ["frequency","nextDate","status"]) { if (req.body[f] !== undefined) updates[f] = req.body[f]; }
   if (req.body.amount !== undefined) updates.amount = String(req.body.amount);
-  const [r] = await db.update(recurringBillsTable).set(updates).where(eq(recurringBillsTable.id, id)).returning();
+  await db.update(recurringBillsTable).set(updates).where(eq(recurringBillsTable.id, id));
+  const [r] = await db.select().from(recurringBillsTable).where(eq(recurringBillsTable.id, id));
   if (!r) { res.status(404).json({ error: "Not found" }); return; }
   const name = await getVendorName(r.vendorId);
   res.json({ ...r, vendorName: name, amount: parseFloat(String(r.amount)), createdAt: r.createdAt.toISOString() });
@@ -288,8 +305,9 @@ router.patch("/recurring-bills/:id", async (req, res): Promise<void> => {
 
 router.delete("/recurring-bills/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [r] = await db.delete(recurringBillsTable).where(eq(recurringBillsTable.id, id)).returning();
+  const [r] = await db.select().from(recurringBillsTable).where(eq(recurringBillsTable.id, id));
   if (!r) { res.status(404).json({ error: "Not found" }); return; }
+  await db.delete(recurringBillsTable).where(eq(recurringBillsTable.id, id));
   res.sendStatus(204);
 });
 
@@ -306,7 +324,8 @@ router.get("/payments-made", async (req, res): Promise<void> => {
 router.post("/payments-made", async (req, res): Promise<void> => {
   const { vendorId, date, amount, paymentMethod, reference, billId, notes } = req.body;
   if (!vendorId || !date || amount == null || !paymentMethod) { res.status(400).json({ error: "Missing required fields" }); return; }
-  const [r] = await db.insert(paymentsMadeTable).values({ vendorId, date, amount: String(amount), paymentMethod, reference, billId, notes }).returning();
+  const [inserted] = await db.insert(paymentsMadeTable).values({ vendorId, date, amount: String(amount), paymentMethod, reference, billId, notes }).$returningId();
+  const [r] = await db.select().from(paymentsMadeTable).where(eq(paymentsMadeTable.id, inserted.id));
   const name = await getVendorName(vendorId);
   res.status(201).json({ ...r, vendorName: name, amount: parseFloat(String(r.amount)), createdAt: r.createdAt.toISOString() });
 });
@@ -321,8 +340,9 @@ router.get("/payments-made/:id", async (req, res): Promise<void> => {
 
 router.delete("/payments-made/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [r] = await db.delete(paymentsMadeTable).where(eq(paymentsMadeTable.id, id)).returning();
+  const [r] = await db.select().from(paymentsMadeTable).where(eq(paymentsMadeTable.id, id));
   if (!r) { res.status(404).json({ error: "Not found" }); return; }
+  await db.delete(paymentsMadeTable).where(eq(paymentsMadeTable.id, id));
   res.sendStatus(204);
 });
 
@@ -342,7 +362,8 @@ router.post("/vendor-credits", async (req, res): Promise<void> => {
   const items = lineItems ?? [];
   const amount = items.reduce((s: number, li: { amount?: number }) => s + (li.amount ?? 0), 0);
   const vendorCreditNumber = `VC-${Date.now()}`;
-  const [r] = await db.insert(vendorCreditsTable).values({ vendorCreditNumber, vendorId, date, notes, lineItems: items, amount: String(amount), balance: String(amount) }).returning();
+  const [inserted] = await db.insert(vendorCreditsTable).values({ vendorCreditNumber, vendorId, date, notes, lineItems: items, amount: String(amount), balance: String(amount) }).$returningId();
+  const [r] = await db.select().from(vendorCreditsTable).where(eq(vendorCreditsTable.id, inserted.id));
   const name = await getVendorName(vendorId);
   res.status(201).json({ ...r, vendorName: name, amount: parseFloat(String(r.amount)), balance: parseFloat(String(r.balance)), lineItems: (r.lineItems as unknown[]) ?? [], createdAt: r.createdAt.toISOString() });
 });
@@ -359,7 +380,8 @@ router.patch("/vendor-credits/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const updates: Record<string, unknown> = {};
   for (const f of ["status","notes"]) { if (req.body[f] !== undefined) updates[f] = req.body[f]; }
-  const [r] = await db.update(vendorCreditsTable).set(updates).where(eq(vendorCreditsTable.id, id)).returning();
+  await db.update(vendorCreditsTable).set(updates).where(eq(vendorCreditsTable.id, id));
+  const [r] = await db.select().from(vendorCreditsTable).where(eq(vendorCreditsTable.id, id));
   if (!r) { res.status(404).json({ error: "Not found" }); return; }
   const name = await getVendorName(r.vendorId);
   res.json({ ...r, vendorName: name, amount: parseFloat(String(r.amount)), balance: parseFloat(String(r.balance)), lineItems: (r.lineItems as unknown[]) ?? [], createdAt: r.createdAt.toISOString() });
@@ -367,8 +389,9 @@ router.patch("/vendor-credits/:id", async (req, res): Promise<void> => {
 
 router.delete("/vendor-credits/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [r] = await db.delete(vendorCreditsTable).where(eq(vendorCreditsTable.id, id)).returning();
+  const [r] = await db.select().from(vendorCreditsTable).where(eq(vendorCreditsTable.id, id));
   if (!r) { res.status(404).json({ error: "Not found" }); return; }
+  await db.delete(vendorCreditsTable).where(eq(vendorCreditsTable.id, id));
   res.sendStatus(204);
 });
 

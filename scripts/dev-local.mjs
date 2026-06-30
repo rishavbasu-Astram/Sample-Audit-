@@ -23,7 +23,7 @@ const apiDir = path.join(root, "artifacts", "api-server");
 const webDir = path.join(root, "artifacts", "financial-portal");
 
 const DATABASE_URL =
-  process.env.DATABASE_URL ?? "postgres://postgres@localhost:5433/astram_finance";
+  process.env.DATABASE_URL ?? "mysql://root@localhost:3306/astram_finance";
 const API_PORT = process.env.API_PORT ?? "8080";
 const WEB_PORT = process.env.WEB_PORT ?? "5180";
 

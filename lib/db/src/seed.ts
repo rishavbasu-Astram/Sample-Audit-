@@ -1,19 +1,34 @@
 /**
- * Demo seed for local development.
+ * Demo seed for local development (MariaDB / MySQL).
  *
- *   DATABASE_URL=postgres://... pnpm --filter @workspace/db run seed
+ *   DATABASE_URL=mysql://... pnpm --filter @workspace/db run seed
  *
  * Dates are anchored around 2026 so the dashboard cash-flow chart (trailing 6 months)
- * and the AR/AP aging buckets are populated. Re-running is safe — it truncates first.
+ * and the AR/AP aging buckets are populated. Re-running is safe — it truncates first
+ * (TRUNCATE also resets AUTO_INCREMENT so the FK ids below stay stable).
  */
-import { pool } from "./index";
+import mysql from "mysql2/promise";
+
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL must be set to seed the database.");
+}
 
 const SQL = /* sql */ `
-BEGIN;
-
-TRUNCATE customers, vendors, bank_accounts, bank_transactions, chart_of_accounts,
-         assets, invoices, bills, expenses, payments_received, quotes, purchase_orders,
-         journals RESTART IDENTITY CASCADE;
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE customers;
+TRUNCATE TABLE vendors;
+TRUNCATE TABLE bank_accounts;
+TRUNCATE TABLE bank_transactions;
+TRUNCATE TABLE chart_of_accounts;
+TRUNCATE TABLE assets;
+TRUNCATE TABLE invoices;
+TRUNCATE TABLE bills;
+TRUNCATE TABLE expenses;
+TRUNCATE TABLE payments_received;
+TRUNCATE TABLE quotes;
+TRUNCATE TABLE purchase_orders;
+TRUNCATE TABLE journals;
+SET FOREIGN_KEY_CHECKS = 1;
 
 INSERT INTO customers (name) VALUES
   ('TechCorp Solutions'), ('Global Logistics Ltd'), ('SaaS Ventures LLC'),
@@ -90,14 +105,21 @@ INSERT INTO purchase_orders (po_number, vendor_id, date, expected_date, status, 
 INSERT INTO journals (journal_number, date) VALUES
   ('JE-2026-0001', '2026-06-01'),
   ('JE-2026-0002', '2026-06-15');
-
-COMMIT;
 `;
 
 async function main(): Promise<void> {
-  await pool.query(SQL);
+  const url = new URL(process.env.DATABASE_URL as string);
+  const conn = await mysql.createConnection({
+    host: url.hostname,
+    port: Number(url.port || 3306),
+    user: decodeURIComponent(url.username),
+    password: decodeURIComponent(url.password),
+    database: url.pathname.replace(/^\//, ""),
+    multipleStatements: true,
+  });
+  await conn.query(SQL);
   console.log("Seed complete — demo data loaded.");
-  await pool.end();
+  await conn.end();
 }
 
 main().catch((err) => {

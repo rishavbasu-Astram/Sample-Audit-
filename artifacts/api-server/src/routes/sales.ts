@@ -44,7 +44,8 @@ router.get("/customers", async (req, res): Promise<void> => {
 router.post("/customers", async (req, res): Promise<void> => {
   const { name, email, phone, company, address, taxNumber, currency, status } = req.body;
   if (!name) { res.status(400).json({ error: "Name is required" }); return; }
-  const [c] = await db.insert(customersTable).values({ name, email, phone, company, address, taxNumber, currency: currency ?? "USD", status: status ?? "active" }).returning();
+  const [inserted] = await db.insert(customersTable).values({ name, email, phone, company, address, taxNumber, currency: currency ?? "USD", status: status ?? "active" }).$returningId();
+  const [c] = await db.select().from(customersTable).where(eq(customersTable.id, inserted.id));
   res.status(201).json(formatCustomer(c));
 });
 
@@ -61,15 +62,17 @@ router.patch("/customers/:id", async (req, res): Promise<void> => {
   for (const f of ["name","email","phone","company","address","taxNumber","currency","status"]) {
     if (req.body[f] !== undefined) updates[f === "taxNumber" ? "taxNumber" : f] = req.body[f];
   }
-  const [c] = await db.update(customersTable).set(updates).where(eq(customersTable.id, id)).returning();
+  await db.update(customersTable).set(updates).where(eq(customersTable.id, id));
+  const [c] = await db.select().from(customersTable).where(eq(customersTable.id, id));
   if (!c) { res.status(404).json({ error: "Customer not found" }); return; }
   res.json(formatCustomer(c));
 });
 
 router.delete("/customers/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [c] = await db.delete(customersTable).where(eq(customersTable.id, id)).returning();
+  const [c] = await db.select().from(customersTable).where(eq(customersTable.id, id));
   if (!c) { res.status(404).json({ error: "Customer not found" }); return; }
+  await db.delete(customersTable).where(eq(customersTable.id, id));
   res.sendStatus(204);
 });
 
@@ -110,7 +113,8 @@ router.post("/quotes", async (req, res): Promise<void> => {
   const taxAmount = items.reduce((s: number, li: { taxRate?: number; amount?: number }) => s + ((li.taxRate ?? 0) / 100) * (li.amount ?? 0), 0);
   const total = subtotal + taxAmount;
   const quoteNumber = `QT-${Date.now()}`;
-  const [q] = await db.insert(quotesTable).values({ quoteNumber, customerId, date, expiryDate, notes, lineItems: items, subtotal: String(subtotal), taxAmount: String(taxAmount), total: String(total) }).returning();
+  const [inserted] = await db.insert(quotesTable).values({ quoteNumber, customerId, date, expiryDate, notes, lineItems: items, subtotal: String(subtotal), taxAmount: String(taxAmount), total: String(total) }).$returningId();
+  const [q] = await db.select().from(quotesTable).where(eq(quotesTable.id, inserted.id));
   const name = await getCustomerName(customerId);
   res.status(201).json(formatQuote(q, name));
 });
@@ -129,7 +133,8 @@ router.patch("/quotes/:id", async (req, res): Promise<void> => {
   for (const f of ["expiryDate","status","notes","lineItems"]) {
     if (req.body[f] !== undefined) updates[f] = req.body[f];
   }
-  const [q] = await db.update(quotesTable).set(updates).where(eq(quotesTable.id, id)).returning();
+  await db.update(quotesTable).set(updates).where(eq(quotesTable.id, id));
+  const [q] = await db.select().from(quotesTable).where(eq(quotesTable.id, id));
   if (!q) { res.status(404).json({ error: "Quote not found" }); return; }
   const name = await getCustomerName(q.customerId);
   res.json(formatQuote(q, name));
@@ -137,8 +142,9 @@ router.patch("/quotes/:id", async (req, res): Promise<void> => {
 
 router.delete("/quotes/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [q] = await db.delete(quotesTable).where(eq(quotesTable.id, id)).returning();
+  const [q] = await db.select().from(quotesTable).where(eq(quotesTable.id, id));
   if (!q) { res.status(404).json({ error: "Quote not found" }); return; }
+  await db.delete(quotesTable).where(eq(quotesTable.id, id));
   res.sendStatus(204);
 });
 
@@ -149,7 +155,7 @@ router.post("/quotes/:id/convert-to-invoice", async (req, res): Promise<void> =>
   const today = new Date().toISOString().split("T")[0];
   const dueDate = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
   const invoiceNumber = `INV-${Date.now()}`;
-  const [inv] = await db.insert(invoicesTable).values({
+  const [inserted] = await db.insert(invoicesTable).values({
     invoiceNumber,
     customerId: q.customerId,
     date: today,
@@ -160,7 +166,8 @@ router.post("/quotes/:id/convert-to-invoice", async (req, res): Promise<void> =>
     total: q.total,
     amountDue: q.total,
     amountPaid: "0",
-  }).returning();
+  }).$returningId();
+  const [inv] = await db.select().from(invoicesTable).where(eq(invoicesTable.id, inserted.id));
   await db.update(quotesTable).set({ status: "approved" }).where(eq(quotesTable.id, id));
   const name = await getCustomerName(inv.customerId);
   res.status(201).json({
@@ -207,7 +214,8 @@ router.post("/sales-orders", async (req, res): Promise<void> => {
   const taxAmount = items.reduce((s: number, li: { taxRate?: number; amount?: number }) => s + ((li.taxRate ?? 0) / 100) * (li.amount ?? 0), 0);
   const total = subtotal + taxAmount;
   const orderNumber = `SO-${Date.now()}`;
-  const [o] = await db.insert(salesOrdersTable).values({ orderNumber, customerId, date, deliveryDate, notes, lineItems: items, subtotal: String(subtotal), taxAmount: String(taxAmount), total: String(total) }).returning();
+  const [inserted] = await db.insert(salesOrdersTable).values({ orderNumber, customerId, date, deliveryDate, notes, lineItems: items, subtotal: String(subtotal), taxAmount: String(taxAmount), total: String(total) }).$returningId();
+  const [o] = await db.select().from(salesOrdersTable).where(eq(salesOrdersTable.id, inserted.id));
   const name = await getCustomerName(customerId);
   res.status(201).json(formatSalesOrder(o, name));
 });
@@ -226,7 +234,8 @@ router.patch("/sales-orders/:id", async (req, res): Promise<void> => {
   for (const f of ["deliveryDate","status","notes","lineItems"]) {
     if (req.body[f] !== undefined) updates[f] = req.body[f];
   }
-  const [o] = await db.update(salesOrdersTable).set(updates).where(eq(salesOrdersTable.id, id)).returning();
+  await db.update(salesOrdersTable).set(updates).where(eq(salesOrdersTable.id, id));
+  const [o] = await db.select().from(salesOrdersTable).where(eq(salesOrdersTable.id, id));
   if (!o) { res.status(404).json({ error: "Sales order not found" }); return; }
   const name = await getCustomerName(o.customerId);
   res.json(formatSalesOrder(o, name));
@@ -234,8 +243,9 @@ router.patch("/sales-orders/:id", async (req, res): Promise<void> => {
 
 router.delete("/sales-orders/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [o] = await db.delete(salesOrdersTable).where(eq(salesOrdersTable.id, id)).returning();
+  const [o] = await db.select().from(salesOrdersTable).where(eq(salesOrdersTable.id, id));
   if (!o) { res.status(404).json({ error: "Sales order not found" }); return; }
+  await db.delete(salesOrdersTable).where(eq(salesOrdersTable.id, id));
   res.sendStatus(204);
 });
 
@@ -274,7 +284,8 @@ router.post("/invoices", async (req, res): Promise<void> => {
   const taxAmount = items.reduce((s: number, li: { taxRate?: number; amount?: number }) => s + ((li.taxRate ?? 0) / 100) * (li.amount ?? 0), 0);
   const total = subtotal + taxAmount;
   const invoiceNumber = `INV-${Date.now()}`;
-  const [inv] = await db.insert(invoicesTable).values({ invoiceNumber, customerId, date, dueDate, notes, lineItems: items, subtotal: String(subtotal), taxAmount: String(taxAmount), total: String(total), amountDue: String(total), amountPaid: "0" }).returning();
+  const [inserted] = await db.insert(invoicesTable).values({ invoiceNumber, customerId, date, dueDate, notes, lineItems: items, subtotal: String(subtotal), taxAmount: String(taxAmount), total: String(total), amountDue: String(total), amountPaid: "0" }).$returningId();
+  const [inv] = await db.select().from(invoicesTable).where(eq(invoicesTable.id, inserted.id));
   const name = await getCustomerName(customerId);
   res.status(201).json(formatInvoice(inv, name));
 });
@@ -293,7 +304,8 @@ router.patch("/invoices/:id", async (req, res): Promise<void> => {
   for (const f of ["dueDate","status","notes","lineItems"]) {
     if (req.body[f] !== undefined) updates[f] = req.body[f];
   }
-  const [inv] = await db.update(invoicesTable).set(updates).where(eq(invoicesTable.id, id)).returning();
+  await db.update(invoicesTable).set(updates).where(eq(invoicesTable.id, id));
+  const [inv] = await db.select().from(invoicesTable).where(eq(invoicesTable.id, id));
   if (!inv) { res.status(404).json({ error: "Invoice not found" }); return; }
   const name = await getCustomerName(inv.customerId);
   res.json(formatInvoice(inv, name));
@@ -301,8 +313,9 @@ router.patch("/invoices/:id", async (req, res): Promise<void> => {
 
 router.delete("/invoices/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [inv] = await db.delete(invoicesTable).where(eq(invoicesTable.id, id)).returning();
+  const [inv] = await db.select().from(invoicesTable).where(eq(invoicesTable.id, id));
   if (!inv) { res.status(404).json({ error: "Invoice not found" }); return; }
+  await db.delete(invoicesTable).where(eq(invoicesTable.id, id));
   res.sendStatus(204);
 });
 
@@ -322,7 +335,8 @@ router.post("/sales-receipts", async (req, res): Promise<void> => {
   const items = lineItems ?? [];
   const amount = items.reduce((s: number, li: { amount?: number }) => s + (li.amount ?? 0), 0);
   const receiptNumber = `SR-${Date.now()}`;
-  const [r] = await db.insert(salesReceiptsTable).values({ receiptNumber, customerId, date, paymentMethod, notes, lineItems: items, amount: String(amount) }).returning();
+  const [inserted] = await db.insert(salesReceiptsTable).values({ receiptNumber, customerId, date, paymentMethod, notes, lineItems: items, amount: String(amount) }).$returningId();
+  const [r] = await db.select().from(salesReceiptsTable).where(eq(salesReceiptsTable.id, inserted.id));
   const name = await getCustomerName(customerId);
   res.status(201).json({ ...r, customerName: name, amount: parseFloat(String(r.amount)), lineItems: (r.lineItems as unknown[]) ?? [], createdAt: r.createdAt.toISOString() });
 });
@@ -339,7 +353,8 @@ router.patch("/sales-receipts/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const updates: Record<string, unknown> = {};
   for (const f of ["paymentMethod","notes"]) { if (req.body[f] !== undefined) updates[f] = req.body[f]; }
-  const [r] = await db.update(salesReceiptsTable).set(updates).where(eq(salesReceiptsTable.id, id)).returning();
+  await db.update(salesReceiptsTable).set(updates).where(eq(salesReceiptsTable.id, id));
+  const [r] = await db.select().from(salesReceiptsTable).where(eq(salesReceiptsTable.id, id));
   if (!r) { res.status(404).json({ error: "Sales receipt not found" }); return; }
   const name = await getCustomerName(r.customerId);
   res.json({ ...r, customerName: name, amount: parseFloat(String(r.amount)), lineItems: (r.lineItems as unknown[]) ?? [], createdAt: r.createdAt.toISOString() });
@@ -347,8 +362,9 @@ router.patch("/sales-receipts/:id", async (req, res): Promise<void> => {
 
 router.delete("/sales-receipts/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [r] = await db.delete(salesReceiptsTable).where(eq(salesReceiptsTable.id, id)).returning();
+  const [r] = await db.select().from(salesReceiptsTable).where(eq(salesReceiptsTable.id, id));
   if (!r) { res.status(404).json({ error: "Not found" }); return; }
+  await db.delete(salesReceiptsTable).where(eq(salesReceiptsTable.id, id));
   res.sendStatus(204);
 });
 
@@ -363,7 +379,8 @@ router.get("/recurring-invoices", async (req, res): Promise<void> => {
 router.post("/recurring-invoices", async (req, res): Promise<void> => {
   const { customerId, frequency, nextDate, amount, notes } = req.body;
   if (!customerId || !frequency || !nextDate || amount == null) { res.status(400).json({ error: "Missing required fields" }); return; }
-  const [r] = await db.insert(recurringInvoicesTable).values({ customerId, frequency, nextDate, amount: String(amount), notes }).returning();
+  const [inserted] = await db.insert(recurringInvoicesTable).values({ customerId, frequency, nextDate, amount: String(amount), notes }).$returningId();
+  const [r] = await db.select().from(recurringInvoicesTable).where(eq(recurringInvoicesTable.id, inserted.id));
   const name = await getCustomerName(customerId);
   res.status(201).json({ ...r, customerName: name, amount: parseFloat(String(r.amount)), createdAt: r.createdAt.toISOString() });
 });
@@ -381,7 +398,8 @@ router.patch("/recurring-invoices/:id", async (req, res): Promise<void> => {
   const updates: Record<string, unknown> = {};
   for (const f of ["frequency","nextDate","status","notes"]) { if (req.body[f] !== undefined) updates[f] = req.body[f]; }
   if (req.body.amount !== undefined) updates.amount = String(req.body.amount);
-  const [r] = await db.update(recurringInvoicesTable).set(updates).where(eq(recurringInvoicesTable.id, id)).returning();
+  await db.update(recurringInvoicesTable).set(updates).where(eq(recurringInvoicesTable.id, id));
+  const [r] = await db.select().from(recurringInvoicesTable).where(eq(recurringInvoicesTable.id, id));
   if (!r) { res.status(404).json({ error: "Not found" }); return; }
   const name = await getCustomerName(r.customerId);
   res.json({ ...r, customerName: name, amount: parseFloat(String(r.amount)), createdAt: r.createdAt.toISOString() });
@@ -389,8 +407,9 @@ router.patch("/recurring-invoices/:id", async (req, res): Promise<void> => {
 
 router.delete("/recurring-invoices/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [r] = await db.delete(recurringInvoicesTable).where(eq(recurringInvoicesTable.id, id)).returning();
+  const [r] = await db.select().from(recurringInvoicesTable).where(eq(recurringInvoicesTable.id, id));
   if (!r) { res.status(404).json({ error: "Not found" }); return; }
+  await db.delete(recurringInvoicesTable).where(eq(recurringInvoicesTable.id, id));
   res.sendStatus(204);
 });
 
@@ -404,7 +423,8 @@ router.post("/payment-links", async (req, res): Promise<void> => {
   const { title, amount, currency, expiresAt } = req.body;
   if (!title || amount == null || !currency) { res.status(400).json({ error: "Missing required fields" }); return; }
   const url = `https://pay.example.com/${Date.now()}`;
-  const [r] = await db.insert(paymentLinksTable).values({ title, amount: String(amount), currency, url, expiresAt }).returning();
+  const [inserted] = await db.insert(paymentLinksTable).values({ title, amount: String(amount), currency, url, expiresAt }).$returningId();
+  const [r] = await db.select().from(paymentLinksTable).where(eq(paymentLinksTable.id, inserted.id));
   res.status(201).json({ ...r, amount: parseFloat(String(r.amount)), createdAt: r.createdAt.toISOString() });
 });
 
@@ -417,8 +437,9 @@ router.get("/payment-links/:id", async (req, res): Promise<void> => {
 
 router.delete("/payment-links/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [r] = await db.delete(paymentLinksTable).where(eq(paymentLinksTable.id, id)).returning();
+  const [r] = await db.select().from(paymentLinksTable).where(eq(paymentLinksTable.id, id));
   if (!r) { res.status(404).json({ error: "Not found" }); return; }
+  await db.delete(paymentLinksTable).where(eq(paymentLinksTable.id, id));
   res.sendStatus(204);
 });
 
@@ -435,7 +456,8 @@ router.get("/payments-received", async (req, res): Promise<void> => {
 router.post("/payments-received", async (req, res): Promise<void> => {
   const { customerId, date, amount, paymentMethod, reference, invoiceId, notes } = req.body;
   if (!customerId || !date || amount == null || !paymentMethod) { res.status(400).json({ error: "Missing required fields" }); return; }
-  const [r] = await db.insert(paymentsReceivedTable).values({ customerId, date, amount: String(amount), paymentMethod, reference, invoiceId, notes }).returning();
+  const [inserted] = await db.insert(paymentsReceivedTable).values({ customerId, date, amount: String(amount), paymentMethod, reference, invoiceId, notes }).$returningId();
+  const [r] = await db.select().from(paymentsReceivedTable).where(eq(paymentsReceivedTable.id, inserted.id));
   const name = await getCustomerName(customerId);
   res.status(201).json({ ...r, customerName: name, amount: parseFloat(String(r.amount)), createdAt: r.createdAt.toISOString() });
 });
@@ -450,8 +472,9 @@ router.get("/payments-received/:id", async (req, res): Promise<void> => {
 
 router.delete("/payments-received/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [r] = await db.delete(paymentsReceivedTable).where(eq(paymentsReceivedTable.id, id)).returning();
+  const [r] = await db.select().from(paymentsReceivedTable).where(eq(paymentsReceivedTable.id, id));
   if (!r) { res.status(404).json({ error: "Not found" }); return; }
+  await db.delete(paymentsReceivedTable).where(eq(paymentsReceivedTable.id, id));
   res.sendStatus(204);
 });
 
@@ -471,7 +494,8 @@ router.post("/credit-notes", async (req, res): Promise<void> => {
   const items = lineItems ?? [];
   const amount = items.reduce((s: number, li: { amount?: number }) => s + (li.amount ?? 0), 0);
   const creditNoteNumber = `CN-${Date.now()}`;
-  const [r] = await db.insert(creditNotesTable).values({ creditNoteNumber, customerId, date, notes, lineItems: items, amount: String(amount), balance: String(amount) }).returning();
+  const [inserted] = await db.insert(creditNotesTable).values({ creditNoteNumber, customerId, date, notes, lineItems: items, amount: String(amount), balance: String(amount) }).$returningId();
+  const [r] = await db.select().from(creditNotesTable).where(eq(creditNotesTable.id, inserted.id));
   const name = await getCustomerName(customerId);
   res.status(201).json({ ...r, customerName: name, amount: parseFloat(String(r.amount)), balance: parseFloat(String(r.balance)), lineItems: (r.lineItems as unknown[]) ?? [], createdAt: r.createdAt.toISOString() });
 });
@@ -488,7 +512,8 @@ router.patch("/credit-notes/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const updates: Record<string, unknown> = {};
   for (const f of ["status","notes"]) { if (req.body[f] !== undefined) updates[f] = req.body[f]; }
-  const [r] = await db.update(creditNotesTable).set(updates).where(eq(creditNotesTable.id, id)).returning();
+  await db.update(creditNotesTable).set(updates).where(eq(creditNotesTable.id, id));
+  const [r] = await db.select().from(creditNotesTable).where(eq(creditNotesTable.id, id));
   if (!r) { res.status(404).json({ error: "Not found" }); return; }
   const name = await getCustomerName(r.customerId);
   res.json({ ...r, customerName: name, amount: parseFloat(String(r.amount)), balance: parseFloat(String(r.balance)), lineItems: (r.lineItems as unknown[]) ?? [], createdAt: r.createdAt.toISOString() });
@@ -496,8 +521,9 @@ router.patch("/credit-notes/:id", async (req, res): Promise<void> => {
 
 router.delete("/credit-notes/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
-  const [r] = await db.delete(creditNotesTable).where(eq(creditNotesTable.id, id)).returning();
+  const [r] = await db.select().from(creditNotesTable).where(eq(creditNotesTable.id, id));
   if (!r) { res.status(404).json({ error: "Not found" }); return; }
+  await db.delete(creditNotesTable).where(eq(creditNotesTable.id, id));
   res.sendStatus(204);
 });
 

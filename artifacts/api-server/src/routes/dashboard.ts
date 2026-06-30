@@ -20,33 +20,33 @@ router.get("/dashboard/summary", async (req, res): Promise<void> => {
 
   const [invoiceSums] = await db
     .select({
-      totalReceivable: sql<string>`coalesce(sum(amount_due::numeric), 0)`,
-      overdueCount: sql<string>`count(*) filter (where due_date < ${today} and status not in ('paid','cancelled'))`,
+      totalReceivable: sql<string>`coalesce(sum(amount_due), 0)`,
+      overdueCount: sql<string>`coalesce(sum(case when due_date < ${today} and status not in ('paid','cancelled') then 1 else 0 end), 0)`,
     })
     .from(invoicesTable);
 
   const [billSums] = await db
     .select({
-      totalPayable: sql<string>`coalesce(sum(amount_due::numeric), 0)`,
-      overdueCount: sql<string>`count(*) filter (where due_date < ${today} and status not in ('paid','cancelled'))`,
+      totalPayable: sql<string>`coalesce(sum(amount_due), 0)`,
+      overdueCount: sql<string>`coalesce(sum(case when due_date < ${today} and status not in ('paid','cancelled') then 1 else 0 end), 0)`,
     })
     .from(billsTable);
 
   const [revenueSums] = await db
     .select({
-      totalRevenue: sql<string>`coalesce(sum(amount::numeric), 0)`,
+      totalRevenue: sql<string>`coalesce(sum(amount), 0)`,
     })
     .from(paymentsReceivedTable);
 
   const [expenseSums] = await db
     .select({
-      totalExpenses: sql<string>`coalesce(sum(total::numeric), 0)`,
+      totalExpenses: sql<string>`coalesce(sum(total), 0)`,
     })
     .from(expensesTable);
 
   const [bankSums] = await db
     .select({
-      cashBalance: sql<string>`coalesce(sum(current_balance::numeric), 0)`,
+      cashBalance: sql<string>`coalesce(sum(current_balance), 0)`,
     })
     .from(bankAccountsTable);
 
@@ -92,12 +92,12 @@ router.get("/dashboard/cash-flow", async (req, res): Promise<void> => {
     const prefix = `${year}-${monthStr}`;
 
     const [income] = await db
-      .select({ total: sql<string>`coalesce(sum(amount::numeric), 0)` })
+      .select({ total: sql<string>`coalesce(sum(amount), 0)` })
       .from(paymentsReceivedTable)
       .where(sql`date like ${prefix + "%"}`);
 
     const [expenses] = await db
-      .select({ total: sql<string>`coalesce(sum(total::numeric), 0)` })
+      .select({ total: sql<string>`coalesce(sum(total), 0)` })
       .from(expensesTable)
       .where(sql`date like ${prefix + "%"}`);
 
@@ -177,7 +177,7 @@ router.get("/dashboard/ar-aging", async (req, res): Promise<void> => {
   const invoices = await db
     .select({ dueDate: invoicesTable.dueDate, amountDue: invoicesTable.amountDue })
     .from(invoicesTable)
-    .where(sql`status not in ('paid','cancelled') and amount_due::numeric > 0`);
+    .where(sql`status not in ('paid','cancelled') and amount_due > 0`);
 
   let current = 0, d1to30 = 0, d31to60 = 0, d61to90 = 0, over90 = 0;
   const todayStr = today.toISOString().split("T")[0];
@@ -206,7 +206,7 @@ router.get("/dashboard/ap-aging", async (req, res): Promise<void> => {
   const bills = await db
     .select({ dueDate: billsTable.dueDate, amountDue: billsTable.amountDue })
     .from(billsTable)
-    .where(sql`status not in ('paid','cancelled') and amount_due::numeric > 0`);
+    .where(sql`status not in ('paid','cancelled') and amount_due > 0`);
 
   let current = 0, d1to30 = 0, d31to60 = 0, d61to90 = 0, over90 = 0;
   const todayStr = today.toISOString().split("T")[0];

@@ -38,7 +38,7 @@ and recommended tools: [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.
 - **Monorepo:** pnpm workspaces, Node.js 24, TypeScript 5.9
 - **API:** Express 5 (port 8080, served at `/api`), Pino logging
 - **Frontend:** React 19 + Vite, TanStack Query, `wouter` routing, shadcn/ui, Recharts
-- **Database:** PostgreSQL + Drizzle ORM
+- **Database:** MariaDB / MySQL + Drizzle ORM (`mysql2`)
 - **Validation:** Zod (`zod/v4`), `drizzle-zod`
 - **API codegen:** Orval — the OpenAPI spec drives both server-side Zod schemas and client-side React Query hooks
 - **Build:** esbuild (CJS bundle)
@@ -70,14 +70,14 @@ and recommended tools: [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.
 
 ## Quick start
 
-**Prerequisites:** Node.js 24, [pnpm](https://pnpm.io/), and a PostgreSQL database.
+**Prerequisites:** Node.js 24, [pnpm](https://pnpm.io/), and a MariaDB (or MySQL) database.
 
 ```bash
 # 1. Install dependencies (pnpm is enforced; npm/yarn are blocked by preinstall)
 pnpm install
 
 # 2. Provide the database connection string
-export DATABASE_URL="postgres://user:pass@host:5432/astram_finance"
+export DATABASE_URL="mysql://user:pass@localhost:3306/astram_finance"
 
 # 3. Push the schema to your database (dev only)
 pnpm --filter @workspace/db run push
@@ -121,12 +121,13 @@ and frontend together with the dev proxy wired up.
 
 ---
 
-## Known issues
+## Notes
 
-- **Stack inconsistency:** the application code targets **PostgreSQL** (Drizzle `pg-core`,
-  `drizzle.config.ts` dialect `postgresql`), but `replit.nix` provisions **MariaDB** and
-  `.replit` exposes port `3306`. These are leftover Replit scaffolding values — the
-  database of record is PostgreSQL. Reconcile or remove the MariaDB references before deploying.
+- The database of record is **MariaDB / MySQL** (Drizzle `mysql2`, dialect `mysql`),
+  consistent with `replit.nix` (MariaDB) and `.replit` (port `3306`).
+- MariaDB exposes JSON columns as `LONGTEXT`, so JSON fields use a custom Drizzle type
+  (`lib/db/src/json.ts`) that parses on read and serializes on write.
+- MySQL has no `RETURNING`; create/update/delete handlers mutate, then `select` the row.
 
 ---
 

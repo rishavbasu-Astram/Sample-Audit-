@@ -1,15 +1,15 @@
 # Local Development (Windows / macOS / Linux)
 
-How to run the full stack — PostgreSQL + API + frontend — on your own machine.
+How to run the full stack — MariaDB + API + frontend — on your own machine.
 The repo also runs on Replit as-is; this guide is for local development off-platform.
 
 ## Prerequisites
 
 - **Node.js 24** and **pnpm** (`npm i -g pnpm`)
-- **PostgreSQL** running locally (any 14+). Options:
-  - Use an existing local Postgres, or
-  - Docker: `docker run --name astram-pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16`, or
-  - Portable binaries (no admin) from [EDB](https://www.enterprisedb.com/download-postgresql-binaries).
+- **MariaDB** (or MySQL 8) running locally. Options:
+  - Use an existing local MariaDB/MySQL, or
+  - Docker: `docker run --name astram-mariadb -e MARIADB_ROOT_PASSWORD=root -p 3306:3306 -d mariadb:11`, or
+  - Portable binaries (no admin) from [mariadb.org](https://mariadb.org/download/).
 
 ## 1. Install
 
@@ -23,17 +23,17 @@ are all supported.
 
 ## 2. Point at your database
 
-Set `DATABASE_URL` to your Postgres instance, e.g.:
+Set `DATABASE_URL` to your MariaDB/MySQL instance, e.g.:
 
 ```bash
 # macOS / Linux
-export DATABASE_URL="postgres://postgres:postgres@localhost:5432/astram_finance"
+export DATABASE_URL="mysql://root:root@localhost:3306/astram_finance"
 
 # Windows (PowerShell)
-$env:DATABASE_URL = "postgres://postgres:postgres@localhost:5432/astram_finance"
+$env:DATABASE_URL = "mysql://root:root@localhost:3306/astram_finance"
 ```
 
-Create the database once if it doesn't exist (e.g. `createdb astram_finance`).
+Create the database once if it doesn't exist (e.g. `mysql -u root -e "CREATE DATABASE astram_finance"`).
 
 ## 3. Push the schema and seed demo data
 

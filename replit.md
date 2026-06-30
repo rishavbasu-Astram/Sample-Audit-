@@ -10,14 +10,14 @@ A comprehensive financial management portal for businesses, covering the full ac
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — MariaDB/MySQL connection string (e.g. `mysql://root@localhost:3306/astram_finance`)
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
 - API: Express 5, port 8080
 - Frontend: React + Vite, TanStack Query, wouter routing, shadcn/ui, Recharts
-- DB: PostgreSQL + Drizzle ORM
+- DB: MariaDB / MySQL + Drizzle ORM (`mysql2` driver)
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
@@ -35,8 +35,9 @@ A comprehensive financial management portal for businesses, covering the full ac
 ## Architecture decisions
 
 - Contract-first API: OpenAPI spec drives both Zod validation on the server and React Query hooks on the client
-- Numeric fields stored as Postgres `numeric` type; parsed to `float` in route handlers before serialization
-- JSONB columns used for `lineItems` and `entries` arrays (invoices, bills, journals)
+- Numeric fields stored as `decimal`; parsed to `float` in route handlers before serialization
+- JSON columns used for `lineItems` and `entries` arrays (invoices, bills, journals). On MariaDB, JSON is `LONGTEXT`-backed, so a custom `json` type (`lib/db/src/json.ts`) parses/serializes explicitly
+- MySQL has no `RETURNING`; create/update/delete handlers mutate then `select` the row
 - Auto-generated document numbers (INV-, BILL-, QT-, etc.) on the server at insert time
 - Customer/vendor names are looked up and embedded in responses for convenience
 
