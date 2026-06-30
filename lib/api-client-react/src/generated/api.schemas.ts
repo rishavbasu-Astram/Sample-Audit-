@@ -833,6 +833,103 @@ export interface TransactionLockInput {
   description?: string;
 }
 
+export interface CostCenter {
+  id: number;
+  code: string;
+  name: string;
+  /** @nullable */
+  manager?: string | null;
+  /** @nullable */
+  parentId?: number | null;
+  budgetedAmount: number;
+  actualAmount: number;
+  variance: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface CostCenterInput {
+  code: string;
+  name: string;
+  manager?: string;
+  parentId?: number;
+  budgetedAmount?: number;
+  actualAmount?: number;
+}
+
+export interface CostCenterUpdate {
+  name?: string;
+  manager?: string;
+  parentId?: number;
+  budgetedAmount?: number;
+  actualAmount?: number;
+  isActive?: boolean;
+}
+
+export interface Product {
+  id: number;
+  code: string;
+  name: string;
+  /** @nullable */
+  category?: string | null;
+  /** @nullable */
+  unit?: string | null;
+  standardCost: number;
+  actualCost: number;
+  quantity: number;
+  unitVariance: number;
+  totalVariance: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface ProductInput {
+  code: string;
+  name: string;
+  category?: string;
+  unit?: string;
+  standardCost?: number;
+  actualCost?: number;
+  quantity?: number;
+}
+
+export interface ProductUpdate {
+  name?: string;
+  category?: string;
+  unit?: string;
+  standardCost?: number;
+  actualCost?: number;
+  quantity?: number;
+  isActive?: boolean;
+}
+
+export interface ProfitabilitySummary {
+  revenue: number;
+  cost: number;
+  grossProfit: number;
+  margin: number;
+}
+
+export interface ProfitabilityPeriod {
+  period: string;
+  revenue: number;
+  cost: number;
+  grossProfit: number;
+  margin: number;
+}
+
+export interface ProfitabilityCustomer {
+  customerId: number;
+  customerName: string;
+  revenue: number;
+}
+
+export interface ProfitabilityReport {
+  summary: ProfitabilitySummary;
+  byMonth: ProfitabilityPeriod[];
+  byCustomer: ProfitabilityCustomer[];
+}
+
 export type GetCashFlowParams = {
 period?: GetCashFlowPeriod;
 };

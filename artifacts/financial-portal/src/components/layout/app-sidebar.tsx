@@ -36,7 +36,11 @@ import {
   Target,
   Banknote,
   Calculator,
-  Lock
+  Lock,
+  Gauge,
+  Network,
+  Boxes,
+  TrendingUp
 } from "lucide-react";
 
 export function AppSidebar() {
@@ -96,18 +100,33 @@ export function AppSidebar() {
         { title: "Currency Adjustments", url: "/accountant/currency-adjustments", icon: Calculator },
         { title: "Transaction Locking", url: "/accountant/transaction-locking", icon: Lock },
       ]
+    },
+    {
+      title: "Controlling",
+      icon: Gauge,
+      items: [
+        { title: "Cost Centers", url: "/controlling/cost-centers", icon: Network },
+        { title: "Product Costs", url: "/controlling/product-costs", icon: Boxes },
+        { title: "Profitability", url: "/controlling/profitability", icon: TrendingUp },
+      ]
     }
   ];
 
   return (
     <Sidebar>
       <SidebarHeader className="py-4 px-4 border-b">
-        <div className="flex items-center gap-2 font-bold text-lg text-primary">
-          <div className="w-8 h-8 rounded bg-primary text-primary-foreground flex items-center justify-center">
-            A
-          </div>
-          Astram
-        </div>
+        <Link
+          href="/"
+          aria-label="Astram — Dashboard"
+          className="block rounded-md bg-white px-3 py-2.5 shadow-sm transition-shadow hover:shadow"
+        >
+          <img
+            src="/astram-logo.png"
+            alt="Astram — Excellence, Integrity, Compliance, Sustainable Growth"
+            className="h-auto w-full select-none"
+            draggable={false}
+          />
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         {navigation.map((section) => (

@@ -34,6 +34,9 @@ tags:
   - name: vat-payments
   - name: currency-adjustments
   - name: transaction-locking
+  - name: cost-centers
+  - name: products
+  - name: profitability
 
 paths:
   /healthz:
@@ -2232,6 +2235,185 @@ paths:
         "204":
           description: Deleted
 
+  # ── COST CENTERS ──────────────────────────────────────────────────────────
+  /cost-centers:
+    get:
+      operationId: listCostCenters
+      tags: [cost-centers]
+      responses:
+        "200":
+          description: List of cost centers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CostCenter"
+    post:
+      operationId: createCostCenter
+      tags: [cost-centers]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CostCenterInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CostCenter"
+
+  /cost-centers/{id}:
+    get:
+      operationId: getCostCenter
+      tags: [cost-centers]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cost center
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CostCenter"
+    patch:
+      operationId: updateCostCenter
+      tags: [cost-centers]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CostCenterUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CostCenter"
+    delete:
+      operationId: deleteCostCenter
+      tags: [cost-centers]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── PRODUCTS (COST CONTROLLING) ───────────────────────────────────────────
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [products]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── PROFITABILITY ANALYSIS ────────────────────────────────────────────────
+  /reports/profitability:
+    get:
+      operationId: getProfitabilityReport
+      tags: [profitability]
+      responses:
+        "200":
+          description: Profitability report (accrual, ex-tax)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfitabilityReport"
+
 components:
   schemas:
     HealthStatus:
@@ -3753,3 +3935,184 @@ components:
         description:
           type: string
       required: [lockDate]
+
+    # ── COST CENTERS ───────────────────────────────────────────────────────
+    CostCenter:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        manager:
+          type: ["string", "null"]
+        parentId:
+          type: ["integer", "null"]
+        budgetedAmount:
+          type: number
+        actualAmount:
+          type: number
+        variance:
+          type: number
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, code, name, budgetedAmount, actualAmount, variance, isActive, createdAt]
+
+    CostCenterInput:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        manager:
+          type: string
+        parentId:
+          type: integer
+        budgetedAmount:
+          type: number
+        actualAmount:
+          type: number
+      required: [code, name]
+
+    CostCenterUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        manager:
+          type: string
+        parentId:
+          type: integer
+        budgetedAmount:
+          type: number
+        actualAmount:
+          type: number
+        isActive:
+          type: boolean
+
+    # ── PRODUCTS (COST CONTROLLING) ────────────────────────────────────────
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        category:
+          type: ["string", "null"]
+        unit:
+          type: ["string", "null"]
+        standardCost:
+          type: number
+        actualCost:
+          type: number
+        quantity:
+          type: number
+        unitVariance:
+          type: number
+        totalVariance:
+          type: number
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, code, name, standardCost, actualCost, quantity, unitVariance, totalVariance, isActive, createdAt]
+
+    ProductInput:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        unit:
+          type: string
+        standardCost:
+          type: number
+        actualCost:
+          type: number
+        quantity:
+          type: number
+      required: [code, name]
+
+    ProductUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        unit:
+          type: string
+        standardCost:
+          type: number
+        actualCost:
+          type: number
+        quantity:
+          type: number
+        isActive:
+          type: boolean
+
+    # ── PROFITABILITY ANALYSIS ─────────────────────────────────────────────
+    ProfitabilitySummary:
+      type: object
+      properties:
+        revenue:
+          type: number
+        cost:
+          type: number
+        grossProfit:
+          type: number
+        margin:
+          type: number
+      required: [revenue, cost, grossProfit, margin]
+
+    ProfitabilityPeriod:
+      type: object
+      properties:
+        period:
+          type: string
+        revenue:
+          type: number
+        cost:
+          type: number
+        grossProfit:
+          type: number
+        margin:
+          type: number
+      required: [period, revenue, cost, grossProfit, margin]
+
+    ProfitabilityCustomer:
+      type: object
+      properties:
+        customerId:
+          type: integer
+        customerName:
+          type: string
+        revenue:
+          type: number
+      required: [customerId, customerName, revenue]
+
+    ProfitabilityReport:
+      type: object
+      properties:
+        summary:
+          $ref: "#/components/schemas/ProfitabilitySummary"
+        byMonth:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfitabilityPeriod"
+        byCustomer:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfitabilityCustomer"
+      required: [summary, byMonth, byCustomer]

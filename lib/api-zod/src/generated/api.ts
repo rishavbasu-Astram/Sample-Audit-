@@ -2202,3 +2202,183 @@ export const DeleteTransactionLockParams = zod.object({
 })
 
 
+export const ListCostCentersResponseItem = zod.object({
+  "id": zod.number(),
+  "code": zod.string(),
+  "name": zod.string(),
+  "manager": zod.string().nullish(),
+  "parentId": zod.number().nullish(),
+  "budgetedAmount": zod.number(),
+  "actualAmount": zod.number(),
+  "variance": zod.number(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const ListCostCentersResponse = zod.array(ListCostCentersResponseItem)
+
+
+export const CreateCostCenterBody = zod.object({
+  "code": zod.string(),
+  "name": zod.string(),
+  "manager": zod.string().optional(),
+  "parentId": zod.number().optional(),
+  "budgetedAmount": zod.number().optional(),
+  "actualAmount": zod.number().optional()
+})
+
+
+export const GetCostCenterParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetCostCenterResponse = zod.object({
+  "id": zod.number(),
+  "code": zod.string(),
+  "name": zod.string(),
+  "manager": zod.string().nullish(),
+  "parentId": zod.number().nullish(),
+  "budgetedAmount": zod.number(),
+  "actualAmount": zod.number(),
+  "variance": zod.number(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+export const UpdateCostCenterParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateCostCenterBody = zod.object({
+  "name": zod.string().optional(),
+  "manager": zod.string().optional(),
+  "parentId": zod.number().optional(),
+  "budgetedAmount": zod.number().optional(),
+  "actualAmount": zod.number().optional(),
+  "isActive": zod.boolean().optional()
+})
+
+export const UpdateCostCenterResponse = zod.object({
+  "id": zod.number(),
+  "code": zod.string(),
+  "name": zod.string(),
+  "manager": zod.string().nullish(),
+  "parentId": zod.number().nullish(),
+  "budgetedAmount": zod.number(),
+  "actualAmount": zod.number(),
+  "variance": zod.number(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+export const DeleteCostCenterParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const ListProductsResponseItem = zod.object({
+  "id": zod.number(),
+  "code": zod.string(),
+  "name": zod.string(),
+  "category": zod.string().nullish(),
+  "unit": zod.string().nullish(),
+  "standardCost": zod.number(),
+  "actualCost": zod.number(),
+  "quantity": zod.number(),
+  "unitVariance": zod.number(),
+  "totalVariance": zod.number(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const ListProductsResponse = zod.array(ListProductsResponseItem)
+
+
+export const CreateProductBody = zod.object({
+  "code": zod.string(),
+  "name": zod.string(),
+  "category": zod.string().optional(),
+  "unit": zod.string().optional(),
+  "standardCost": zod.number().optional(),
+  "actualCost": zod.number().optional(),
+  "quantity": zod.number().optional()
+})
+
+
+export const GetProductParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetProductResponse = zod.object({
+  "id": zod.number(),
+  "code": zod.string(),
+  "name": zod.string(),
+  "category": zod.string().nullish(),
+  "unit": zod.string().nullish(),
+  "standardCost": zod.number(),
+  "actualCost": zod.number(),
+  "quantity": zod.number(),
+  "unitVariance": zod.number(),
+  "totalVariance": zod.number(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+export const UpdateProductParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateProductBody = zod.object({
+  "name": zod.string().optional(),
+  "category": zod.string().optional(),
+  "unit": zod.string().optional(),
+  "standardCost": zod.number().optional(),
+  "actualCost": zod.number().optional(),
+  "quantity": zod.number().optional(),
+  "isActive": zod.boolean().optional()
+})
+
+export const UpdateProductResponse = zod.object({
+  "id": zod.number(),
+  "code": zod.string(),
+  "name": zod.string(),
+  "category": zod.string().nullish(),
+  "unit": zod.string().nullish(),
+  "standardCost": zod.number(),
+  "actualCost": zod.number(),
+  "quantity": zod.number(),
+  "unitVariance": zod.number(),
+  "totalVariance": zod.number(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+export const DeleteProductParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const GetProfitabilityReportResponse = zod.object({
+  "summary": zod.object({
+  "revenue": zod.number(),
+  "cost": zod.number(),
+  "grossProfit": zod.number(),
+  "margin": zod.number()
+}),
+  "byMonth": zod.array(zod.object({
+  "period": zod.string(),
+  "revenue": zod.number(),
+  "cost": zod.number(),
+  "grossProfit": zod.number(),
+  "margin": zod.number()
+})),
+  "byCustomer": zod.array(zod.object({
+  "customerId": zod.number(),
+  "customerName": zod.string(),
+  "revenue": zod.number()
+}))
+})
+
+

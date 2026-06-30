@@ -23,9 +23,9 @@ production database. See [`docs/ASTRAM_MIGRATION.md`](docs/ASTRAM_MIGRATION.md).
 | **Purchases (Accounts Payable)** | ✅ Built | Vendors · Expenses · Recurring Expenses · Purchase Orders · Bills · Recurring Bills · Payments Made · Vendor Credits |
 | **Banking & Reconciliation** | ✅ Built | Bank accounts with running balances, transaction ledger with credit/debit tracking |
 | **Accountant** | ✅ Built | Chart of Accounts · Manual & Recurring Journals (double-entry) · Budgets (vs actual) · VAT Payments · Currency Adjustments · Transaction Locking |
-| **Cost Center Accounting** | 🔲 Planned | Not yet implemented |
-| **Product Cost Controlling** | 🔲 Planned | Not yet implemented |
-| **Profitability Analysis** | 🔲 Planned | Not yet implemented |
+| **Cost Center Accounting** | ✅ Built | Cost centers with manager, budgeted vs. actual, and variance |
+| **Product Cost Controlling** | ✅ Built | Products with standard vs. actual cost and unit/total cost variance |
+| **Profitability Analysis** | ✅ Built | Contribution margin by month and customer (accrual, ex-tax) |
 
 Full feature breakdown and the "SAP Finance alternative" vision:
 [`docs/FEATURES.md`](docs/FEATURES.md). Per-feature implementation plan with methods

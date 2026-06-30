@@ -17,12 +17,12 @@ openapi.yaml  ──Orval codegen──▶  api-zod (server validation)
  (source of                  └──▶  api-client-react (TanStack Query hooks)
   truth)
       │
-      └──▶ Drizzle schema (lib/db) ──push──▶ PostgreSQL
+      └──▶ Drizzle schema (lib/db) ──push──▶ MariaDB / MySQL
 ```
 
 **The recipe to add or change any CRUD feature:**
 
-1. **Model the data** — add/extend a table in `lib/db/src/schema/<module>.ts` (Drizzle, `pg-core`). Run `pnpm --filter @workspace/db run push`.
+1. **Model the data** — add/extend a table in `lib/db/src/schema/<module>.ts` (Drizzle, `mysql-core`). Run `pnpm --filter @workspace/db run push`.
 2. **Define the contract** — add the paths and schemas in `lib/api-spec/openapi.yaml`, tagged by resource.
 3. **Generate** — `pnpm --filter @workspace/api-spec run codegen` regenerates the Zod schemas (`lib/api-zod`) and React Query hooks (`lib/api-client-react`).
 4. **Implement the route** — add a handler in `artifacts/api-server/src/routes/<module>.ts`, validating input with the generated Zod schema and parsing `numeric` columns with `parseFloat()` before serialising.
@@ -33,8 +33,8 @@ openapi.yaml  ──Orval codegen──▶  api-zod (server validation)
 > client that disagrees with the server contract — the types won't compile.
 
 ### Conventions to keep
-- Numeric fields are Postgres `numeric` → arrive as `string` in Drizzle → `parseFloat()` in handlers.
-- `lineItems` / `entries` arrays are stored as `jsonb`.
+- Numeric fields are MySQL `decimal` → arrive as `string` in Drizzle → `parseFloat()` in handlers (and `String(value)` on write).
+- `lineItems` / `entries` arrays use a custom `json` type (LONGTEXT-backed on MariaDB; see `lib/db/src/json.ts`).
 - Document numbers (`INV-`, `BILL-`, `QT-`, …) are auto-generated server-side at insert.
 - Customer/vendor names are looked up and embedded in responses for convenience.
 - Express 5: `req.params.id` is `string | string[]` — guard with `Array.isArray` before `parseInt`.
@@ -44,7 +44,7 @@ openapi.yaml  ──Orval codegen──▶  api-zod (server validation)
 
 ## 2. Built features — maintenance notes
 
-All six built modules already follow the recipe above. Ongoing work is mostly:
+All built modules already follow the recipe above. Ongoing work is mostly:
 
 | Module | Likely next actions |
 |--------|--------------------|
@@ -54,35 +54,34 @@ All six built modules already follow the recipe above. Ongoing work is mostly:
 | Purchases (AP) | PO→Bill→Payment matching (3-way match); approval workflow |
 | Banking | Statement import + auto-reconciliation (see §4) |
 | Accountant | Finish **Bulk Updates** (brief lists it; verify journal bulk-edit coverage) |
+| Controlling | Tag postings with `cost_center_id`; BOM-based standard-cost roll-up; more profitability dimensions (see §3) |
 
 ---
 
-## 3. Planned features — detailed plans
+## 3. Controlling features — ✅ Built
 
-These three headline features have **no schema/API/UI yet**. They form the
-management-accounting layer above the general ledger. Recommended approach for each:
+The three management-accounting features (headline 6–8) now sit on top of the ledger.
+Schema: `lib/db/src/schema/controlling.ts` · API: `artifacts/api-server/src/routes/controlling.ts`
+· UI: `artifacts/financial-portal/src/pages/controlling/` · nav: sidebar "Controlling" section.
 
-### 3.1 Cost Center Accounting
-- **Data:** `cost_centers` table (code, name, parent_id for hierarchy, manager, active). Add a nullable `cost_center_id` FK to postable lines (journal entries, expenses, bills, invoices line items).
-- **Contract/API:** `chart-of-accounts`-style CRUD for cost centers; extend list endpoints with `costCenterId` filter; a `/reports/cost-center` aggregation endpoint.
-- **UI:** `pages/accountant/cost-centers.tsx` (tree view) + a cost-center column/filter on transaction lists; a "by cost center" report view.
-- **Method:** treat the cost center as an analytical dimension tagged on every posting; aggregate in SQL (Drizzle `sql` + `groupBy`).
+### 3.1 Cost Center Accounting — built
+- **Data:** `cost_centers` table — code, name, manager, `parent_id` (hierarchy; bare int, no FK, matching the rest of the schema), `budgeted_amount`, `actual_amount`, `is_active`.
+- **API:** `/cost-centers` CRUD. `variance` (= budgeted − actual) is computed server-side.
+- **UI:** `pages/controlling/cost-centers.tsx` — DataTable with colour-coded variance + create/delete.
+- **Next step (optional):** tag postings (journal/expense/bill/invoice lines) with `cost_center_id` and aggregate actuals automatically rather than storing them on the center.
 
-### 3.2 Product Cost Controlling
-- **Data:** `products` (or `items`) table with standard cost; `cost_estimates` (standard cost roll-up of components); `cost_postings` capturing actual cost per job/order.
-- **API:** CRUD for products and cost estimates; a variance endpoint (standard vs. actual).
-- **UI:** `pages/controlling/product-costs.tsx` — standard vs. actual variance table, cost roll-up viewer.
-- **Method:** standard-cost roll-up computed from a bill-of-materials; actuals captured from purchase/expense postings linked to a product/job.
+### 3.2 Product Cost Controlling — built
+- **Data:** `products` table — code, name, category, unit, `standard_cost`, `actual_cost`, `quantity`, `is_active`.
+- **API:** `/products` CRUD. `unitVariance` (actual − standard) and `totalVariance` (× quantity) are computed server-side.
+- **UI:** `pages/controlling/product-costs.tsx` — standard vs. actual variance table (overrun red, saving green).
+- **Next step (optional):** bill-of-materials roll-up for standard cost; link actuals to purchase/expense postings per job.
 
-### 3.3 Profitability Analysis (CO-PA style)
-- **Data:** no new transactional tables required initially — derive from existing invoices, bills, expenses, and journals, sliced by dimensions (product, customer, region, cost center).
-- **API:** `/reports/profitability` with dimension + period query params returning a contribution-margin matrix.
-- **UI:** `pages/reports/profitability.tsx` — pivot-style table + Recharts visualisations; export to PDF/CSV.
-- **Method:** build a reporting view/materialised view in Postgres that joins revenue and cost postings by dimension; start read-only, add drill-down later.
-
-> **Sequencing:** Cost Center first (it's the dimension the other two depend on),
-> then Profitability Analysis (reuses existing data), then Product Cost Controlling
-> (needs the product/BOM model).
+### 3.3 Profitability Analysis (CO-PA style) — built
+- **Data:** no new tables — derived from existing `invoices`, `bills`, `expenses`, `customers`.
+- **API:** `/reports/profitability` returns `summary`, `byMonth` (trailing 6 months), and `byCustomer`.
+- **Basis:** **accrual, ex-tax** — revenue = `invoices.subtotal`; cost = `bills.subtotal` + `expenses.amount`. Tax is excluded so VAT doesn't distort margin. This **intentionally differs** from the dashboard's cash-basis net profit (`paymentsReceived − expenses`).
+- **UI:** `pages/controlling/profitability.tsx` — KPI cards, revenue-vs-cost Recharts bar chart, by-month and by-customer tables.
+- **Next step (optional):** more dimensions (product, region, cost center), period selector, PDF/CSV export.
 
 ---
 
@@ -115,6 +114,6 @@ management-accounting layer above the general ledger. Recommended approach for e
 
 ## 6. Migration into Astram
 
-The portal runs on its own PostgreSQL database now and will be migrated into Astram's
-production database later. The schema is deliberately modular (`lib/db/src/schema/*`)
-to make that mapping explicit. See [`ASTRAM_MIGRATION.md`](ASTRAM_MIGRATION.md).
+The portal runs on its own MariaDB / MySQL database now and will be migrated into
+Astram's production database later. The schema is deliberately modular
+(`lib/db/src/schema/*`) to make that mapping explicit. See [`ASTRAM_MIGRATION.md`](ASTRAM_MIGRATION.md).

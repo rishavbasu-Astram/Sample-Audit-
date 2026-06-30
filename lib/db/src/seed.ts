@@ -28,6 +28,8 @@ TRUNCATE TABLE payments_received;
 TRUNCATE TABLE quotes;
 TRUNCATE TABLE purchase_orders;
 TRUNCATE TABLE journals;
+TRUNCATE TABLE cost_centers;
+TRUNCATE TABLE products;
 SET FOREIGN_KEY_CHECKS = 1;
 
 INSERT INTO customers (name) VALUES
@@ -105,6 +107,20 @@ INSERT INTO purchase_orders (po_number, vendor_id, date, expected_date, status, 
 INSERT INTO journals (journal_number, date) VALUES
   ('JE-2026-0001', '2026-06-01'),
   ('JE-2026-0002', '2026-06-15');
+
+INSERT INTO cost_centers (code, name, manager, budgeted_amount, actual_amount, is_active) VALUES
+  ('CC-100', 'Engineering',        'Priya Nair',   500000.00, 472000.00, true),
+  ('CC-200', 'Sales & Marketing',  'Daniel Cruz',  300000.00, 318000.00, true),
+  ('CC-300', 'Operations',         'Aisha Khan',   250000.00, 226000.00, true),
+  ('CC-400', 'Administration',     'Tom Reed',     180000.00, 165000.00, true),
+  ('CC-500', 'Customer Support',   'Lena Park',    140000.00, 151000.00, true);
+
+INSERT INTO products (code, name, category, unit, standard_cost, actual_cost, quantity, is_active) VALUES
+  ('P-1001', 'Steel Bracket',   'Hardware',    'pcs',  12.50,  13.20,  8000.00, true),
+  ('P-1002', 'Control Module',  'Electronics', 'pcs', 145.00, 139.50,  1200.00, true),
+  ('P-1003', 'Hydraulic Pump',  'Machinery',   'pcs', 880.00, 910.00,   300.00, true),
+  ('P-1004', 'Polymer Casing',  'Plastics',    'pcs',   6.75,   6.40, 15000.00, true),
+  ('P-1005', 'Assembly Labor',  'Service',     'hr',   45.00,  48.00,  5200.00, true);
 `;
 
 async function main(): Promise<void> {

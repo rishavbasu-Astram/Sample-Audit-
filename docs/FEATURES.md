@@ -26,14 +26,14 @@ automatically flows here to build the chart of accounts, balance sheet, and P&L.
 | 3 | Accounts Payable | ✅ Built | Purchases module (`pages/purchases/*`) |
 | 4 | Accounts Receivable | ✅ Built | Sales module (`pages/sales/*`) |
 | 5 | Asset Management & Depreciation | ✅ Built | `pages/assets.tsx`, `assets` schema (`depreciationMethod`) |
-| 6 | Cost Center Accounting | 🔲 Planned | No schema, API, or UI yet |
-| 7 | Product Cost Controlling | 🔲 Planned | No schema, API, or UI yet |
-| 8 | Profitability Analysis | 🔲 Planned | No schema, API, or UI yet |
+| 6 | Cost Center Accounting | ✅ Built | `pages/controlling/cost-centers.tsx`, `/cost-centers` API |
+| 7 | Product Cost Controlling | ✅ Built | `pages/controlling/product-costs.tsx`, `/products` API |
+| 8 | Profitability Analysis | ✅ Built | `pages/controlling/profitability.tsx`, `/reports/profitability` API |
 | 9 | Cash & Bank Reconciliation | ✅ Built | Banking module (`pages/banking`) |
 
-**6 of 9 headline features are implemented.** The three controlling/analytics features
-(6–8) are the primary scope for the next phase — see
-[`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md).
+**All 9 headline features are implemented.** The controlling/analytics layer (6–8) was
+added on top of the ledger — see [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md). The
+next phase is a tamper-evident **audit trail** (hash-chained ledger).
 
 ---
 
@@ -91,16 +91,27 @@ feature #9 (Cash & Bank Reconciliation).
 | Transaction Locking | ✅ | `/accountant/transaction-locking` |
 | Bulk Updates | ⚠️ Partial | Listed in brief; verify coverage in journals/bulk flows |
 
+### Controlling — ✅ Built
+The management-accounting layer that sits on top of the ledger (headline features 6–8).
+
+| Sub-feature | Built | Route |
+|-------------|-------|-------|
+| Cost Center Accounting | ✅ | `/controlling/cost-centers` |
+| Product Cost Controlling | ✅ | `/controlling/product-costs` |
+| Profitability Analysis | ✅ | `/controlling/profitability` |
+
+- **Cost Center Accounting** — cost centers (code, name, manager, optional parent) with budgeted vs. actual amounts and server-computed variance.
+- **Product Cost Controlling** — products/items with standard vs. actual unit cost; derives unit and total cost variance over produced quantity.
+- **Profitability Analysis (CO-PA style)** — contribution margin by month and by customer. **Accrual basis, ex-tax** (revenue = `invoices.subtotal`; cost = `bills.subtotal` + `expenses.amount`); intentionally differs from the dashboard's cash-basis net profit.
+
+Schema: `lib/db/src/schema/controlling.ts` · API: `artifacts/api-server/src/routes/controlling.ts` · UI: `artifacts/financial-portal/src/pages/controlling/`.
+
 ---
 
-## Planned features (next phase)
+## Planned (next phase)
 
-These appear in the headline vision but have **no schema, API path, or UI** in the
-current codebase. They are the controlling/management-accounting layer that sits on
-top of the ledger:
-
-- **Cost Center Accounting** — allocate costs to organisational cost centers; report by center.
-- **Product Cost Controlling** — track standard vs. actual product/job costs.
-- **Profitability Analysis (CO-PA style)** — margin and profitability reporting by dimension (product, customer, region).
-
-See [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) for the proposed approach.
+- **Audit trail** — a tamper-evident, append-only audit log where each row embeds the
+  hash of the previous row (hash-chained table in MariaDB), giving verifiable history
+  without the overhead of a distributed ledger. See `docs/sources/` (`audit.pdf`) for
+  the blockchain framing this distils.
+- **Bulk Updates** (Accountant) — verify/complete coverage in the journals bulk flows.
