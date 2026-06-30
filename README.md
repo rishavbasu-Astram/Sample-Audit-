@@ -50,7 +50,7 @@ Or connect your GitHub repo to [vercel.com](https://vercel.com) for automatic de
 
 - **Railway**: `railway up`
 - **Netlify**: `netlify deploy --build --prod`
-- **AWS/Docker**: See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
+- **AWS/Docker**: See [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)
 
 ---
 
@@ -150,7 +150,8 @@ financial-management-system/
 │   └── PULL_REQUEST_TEMPLATE.md   # PR template
 ├── docs/
 │   ├── DEV_GUIDE.md              # Development guide
-│   └── DEPLOYMENT_GUIDE.md       # Deployment guide
+│   ├── DEPLOYMENT_GUIDE.md       # Deployment guide
+│   └── GITHUB_SETUP_GUIDE.md     # GitHub setup guide
 ├── public/
 │   └── demo.html                 # Standalone demo
 ├── src/
@@ -177,7 +178,6 @@ financial-management-system/
 │       └── utils.ts              # Utility functions
 ├── CODE_OF_CONDUCT.md
 ├── CONTRIBUTING.md
-├── DEPLOYMENT_GUIDE.md
 ├── LICENSE
 ├── README.md
 ├── SECURITY.md
