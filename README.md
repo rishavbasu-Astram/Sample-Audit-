@@ -82,10 +82,17 @@ export DATABASE_URL="postgres://user:pass@host:5432/astram_finance"
 # 3. Push the schema to your database (dev only)
 pnpm --filter @workspace/db run push
 
-# 4. Run the API (port 8080) and the frontend (port 20844) in separate terminals
+# 4. (optional) Load demo data so the dashboard/charts are populated
+pnpm --filter @workspace/db run seed
+
+# 5. Run the API (port 8080) and the frontend (port 20844) in separate terminals
 pnpm --filter @workspace/api-server run dev
 pnpm --filter @workspace/financial-portal run dev
 ```
+
+**Running locally (Windows/macOS/Linux)?** See [`docs/LOCAL_DEV.md`](docs/LOCAL_DEV.md)
+for a one-command launcher (`node scripts/dev-local.mjs`) that builds and starts the API
+and frontend together with the dev proxy wired up.
 
 ### Other commands
 
@@ -108,6 +115,7 @@ pnpm --filter @workspace/financial-portal run dev
 - [`docs/FEATURES.md`](docs/FEATURES.md) — full feature catalogue, built vs. planned, and the product vision
 - [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) — how each feature is/should be implemented, methods, and recommended tools
 - [`docs/ASTRAM_MIGRATION.md`](docs/ASTRAM_MIGRATION.md) — strategy for migrating into the Astram database
+- [`docs/LOCAL_DEV.md`](docs/LOCAL_DEV.md) — run the full stack locally on Windows/macOS/Linux
 - [`docs/sources/`](docs/sources) — original brief and product notes this work is based on
 - `replit.md` — environment/agent context for the Replit workspace this was scaffolded in
 
