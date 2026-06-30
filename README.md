@@ -1,238 +1,127 @@
-# Enterprise Financial Management System
+# Astram Financial Portal
 
-A production-grade financial management platform built with **Next.js 14**, **TypeScript**, **Tailwind CSS**, and **Shadcn UI** — implementing the exact architecture specified in the technical requirements document.
+A comprehensive financial management portal covering the full accounting lifecycle —
+**assets, sales (AR), purchases (AP), banking, and accountant tools** — built as a
+contract-first TypeScript monorepo.
 
-[![CI/CD](https://github.com/YOUR_USERNAME/financial-management-system/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/financial-management-system/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
+This portal is being developed as a standalone system that will eventually be
+**integrated into the existing Astram platform**. It begins with its own database
+(modelling Astram's entities) and is designed for a later migration into Astram's
+production database. See [`docs/ASTRAM_MIGRATION.md`](docs/ASTRAM_MIGRATION.md).
+
+> Product aesthetic: professional, information-dense — *"Bloomberg meets modern SaaS."* No emojis in the UI.
 
 ---
 
-## Quick Start
+## Modules
 
-### Option 1: View the Standalone Demo (Fastest)
-Open `public/demo.html` in any modern browser. No build step required.
+| Module | Status | Coverage |
+|--------|--------|----------|
+| **Dashboard & Unified Ledger** | ✅ Built | KPI cards (cash, receivables, payables, net profit), 6-month cash-flow chart, AR/AP aging, recent activity |
+| **Assets** | ✅ Built | Asset registry with type/status management and depreciation tracking |
+| **Sales (Accounts Receivable)** | ✅ Built | Customers · Quotes (convert-to-invoice) · Sales Orders · Invoices · Sales Receipts · Recurring Invoices · Payment Links · Payments Received · Credit Notes |
+| **Purchases (Accounts Payable)** | ✅ Built | Vendors · Expenses · Recurring Expenses · Purchase Orders · Bills · Recurring Bills · Payments Made · Vendor Credits |
+| **Banking & Reconciliation** | ✅ Built | Bank accounts with running balances, transaction ledger with credit/debit tracking |
+| **Accountant** | ✅ Built | Chart of Accounts · Manual & Recurring Journals (double-entry) · Budgets (vs actual) · VAT Payments · Currency Adjustments · Transaction Locking |
+| **Cost Center Accounting** | 🔲 Planned | Not yet implemented |
+| **Product Cost Controlling** | 🔲 Planned | Not yet implemented |
+| **Profitability Analysis** | 🔲 Planned | Not yet implemented |
 
-### Option 2: Run the Full Next.js Application
+Full feature breakdown and the "SAP Finance alternative" vision:
+[`docs/FEATURES.md`](docs/FEATURES.md). Per-feature implementation plan with methods
+and recommended tools: [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md).
+
+---
+
+## Tech stack
+
+- **Monorepo:** pnpm workspaces, Node.js 24, TypeScript 5.9
+- **API:** Express 5 (port 8080, served at `/api`), Pino logging
+- **Frontend:** React 19 + Vite, TanStack Query, `wouter` routing, shadcn/ui, Recharts
+- **Database:** PostgreSQL + Drizzle ORM
+- **Validation:** Zod (`zod/v4`), `drizzle-zod`
+- **API codegen:** Orval — the OpenAPI spec drives both server-side Zod schemas and client-side React Query hooks
+- **Build:** esbuild (CJS bundle)
+
+---
+
+## Repository layout
+
+```
+.
+├── lib/
+│   ├── api-spec/            # OpenAPI contract (source of truth) + Orval config
+│   ├── api-client-react/    # Generated TanStack Query hooks
+│   ├── api-zod/             # Generated Zod validation schemas
+│   └── db/                  # Drizzle table definitions (assets, sales, purchases, banking, accountant)
+├── artifacts/
+│   ├── api-server/          # Express route handlers
+│   └── financial-portal/    # React + Vite frontend (pages, components, hooks)
+├── scripts/                 # Workspace tooling
+├── docs/                    # Project documentation (see below)
+└── pnpm-workspace.yaml      # Workspace + dependency catalog
+```
+
+> **Note:** `artifacts/*` and `lib/*` are pnpm workspace roots declared in
+> `pnpm-workspace.yaml`. Renaming these directories will break the workspace,
+> typecheck filters, and TypeScript project references — keep the structure as-is.
+
+---
+
+## Quick start
+
+**Prerequisites:** Node.js 24, [pnpm](https://pnpm.io/), and a PostgreSQL database.
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/YOUR_USERNAME/financial-management-system.git
-cd financial-management-system
+# 1. Install dependencies (pnpm is enforced; npm/yarn are blocked by preinstall)
+pnpm install
 
-# 2. Install dependencies
-npm install
+# 2. Provide the database connection string
+export DATABASE_URL="postgres://user:pass@host:5432/astram_finance"
 
-# 3. Start development server
-npm run dev
+# 3. Push the schema to your database (dev only)
+pnpm --filter @workspace/db run push
 
-# 4. Open http://localhost:3000
+# 4. Run the API (port 8080) and the frontend (port 20844) in separate terminals
+pnpm --filter @workspace/api-server run dev
+pnpm --filter @workspace/financial-portal run dev
 ```
+
+### Other commands
+
+| Command | Purpose |
+|---------|---------|
+| `pnpm run typecheck` | Full typecheck across all packages |
+| `pnpm run build` | Typecheck + build all packages |
+| `pnpm --filter @workspace/api-spec run codegen` | Regenerate API hooks & Zod schemas from the OpenAPI spec |
+
+### Contract-first workflow
+
+1. Edit the contract in `lib/api-spec/openapi.yaml` (the single source of truth).
+2. Run `pnpm --filter @workspace/api-spec run codegen` to regenerate the client hooks and Zod schemas.
+3. After changing any file in `lib/db/src/schema/`, run `pnpm --filter @workspace/db run push`.
 
 ---
 
-## Deployment
+## Documentation
 
-### Deploy to Vercel (Recommended)
-
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
-```
-
-Or connect your GitHub repo to [vercel.com](https://vercel.com) for automatic deployments.
-
-### Other Platforms
-
-- **Railway**: `railway up`
-- **Netlify**: `netlify deploy --build --prod`
-- **AWS/Docker**: See [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)
+- [`docs/FEATURES.md`](docs/FEATURES.md) — full feature catalogue, built vs. planned, and the product vision
+- [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) — how each feature is/should be implemented, methods, and recommended tools
+- [`docs/ASTRAM_MIGRATION.md`](docs/ASTRAM_MIGRATION.md) — strategy for migrating into the Astram database
+- [`docs/sources/`](docs/sources) — original brief and product notes this work is based on
+- `replit.md` — environment/agent context for the Replit workspace this was scaffolded in
 
 ---
 
-## Architecture Overview
+## Known issues
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    NEXT.JS 14 (App Router)                   │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │  Dashboard  │  │  Cash Flow  │  │  Invoicing & Billing │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │   Ledger    │  │    Audit    │  │  Reports & Analytics │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-│                                                              │
-│  State: Zustand  │  Charts: Recharts  │  UI: Radix + Tailwind │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                    ┌─────────┴─────────┐
-                    │   Mock Data Layer   │
-                    │  (Simulates NestJS  │
-                    │   Microservices)    │
-                    └─────────────────────┘
-```
-
----
-
-## Technology Stack
-
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Framework** | Next.js 14 (App Router) | Server Components, Server Actions, SEO |
-| **Language** | TypeScript 5.3+ | Strict typing, zero runtime errors |
-| **Styling** | Tailwind CSS 3.4 | Utility-first, responsive design |
-| **UI Components** | Shadcn UI + Radix | Accessible, customizable primitives |
-| **State (Client)** | Zustand 4.5 | Lightweight, TypeScript-first |
-| **State (Server)** | React Query 5.24 | Caching, synchronization |
-| **Charts** | Recharts 2.12 | Interactive financial visualizations |
-| **Icons** | Lucide React | Consistent iconography |
-| **Backend** | Mock API Layer | Simulates NestJS microservices |
-| **Database** | In-memory store | Simulates PostgreSQL + Prisma |
-
----
-
-## Features Implemented
-
-### 1. Cash Flow Management
-- Real-time tracking of 6 bank accounts (USD, EUR, multi-currency)
-- Transaction history with status (pending/cleared/reconciled)
-- 90-day cash flow forecasting with confidence intervals
-- Account filtering and drill-down
-
-### 2. Invoicing & Billing
-- Invoice lifecycle: draft → sent → paid → overdue
-- Recurring billing schedules
-- Multi-currency support (USD, EUR, GBP)
-- Overdue tracking with aging analysis
-- Create invoice modal with validation
-
-### 3. General Ledger
-- Double-entry bookkeeping (debits = credits validation)
-- Chart of Accounts (22 accounts, 5 types)
-- Journal entry workflow: draft → posted
-- Trial balance aggregation
-- Financial statement generation
-
-### 4. Audit & Compliance
-- **SOC 2 Type II**: 3 controls monitored
-- **GDPR**: 2 controls (Right to Erasure, Data Encryption)
-- **PCI-DSS**: 2 controls (Cardholder Data, Authentication)
-- Immutable audit trail with 8 logged events
-- SHA-256 integrity hashes (simulated)
-- CSV export functionality
-
-### 5. Reports & Analytics
-- **Profit & Loss Statement**: Revenue, COGS, Expenses, Net Income
-- **Balance Sheet**: Assets, Liabilities, Equity
-- **Cash Flow Statement**: Operating, Investing, Financing
-- **Budget vs Actual**: Variance analysis with favorable/unfavorable indicators
-- Export to PDF (simulated)
-
-### 6. Security & RBAC
-- 5 user roles: Super Admin, CFO, Accountant, Auditor, Viewer
-- Permission-based access control
-- Multi-Factor Authentication simulation
-- Session management
-
----
-
-## Project Structure
-
-```
-financial-management-system/
-├── .github/
-│   ├── workflows/ci.yml          # GitHub Actions CI/CD
-│   ├── ISSUE_TEMPLATE/            # Issue templates
-│   └── PULL_REQUEST_TEMPLATE.md   # PR template
-├── docs/
-│   ├── DEV_GUIDE.md              # Development guide
-│   ├── DEPLOYMENT_GUIDE.md       # Deployment guide
-│   └── GITHUB_SETUP_GUIDE.md     # GitHub setup guide
-├── public/
-│   └── demo.html                 # Standalone demo
-├── src/
-│   ├── app/                      # Next.js pages
-│   │   ├── page.tsx              # Dashboard
-│   │   ├── cashflow/page.tsx     # Cash Flow
-│   │   ├── invoicing/page.tsx    # Invoicing
-│   │   ├── ledger/page.tsx       # General Ledger
-│   │   ├── audit/page.tsx        # Audit & Compliance
-│   │   └── reports/page.tsx      # Reports & Analytics
-│   ├── components/
-│   │   ├── ui/                   # Shadcn UI primitives
-│   │   ├── sidebar.tsx           # Navigation
-│   │   ├── header.tsx            # Page header
-│   │   └── dashboard/
-│   │       └── kpi-card.tsx      # KPI widget
-│   ├── data/
-│   │   └── mockData.ts           # Complete mock dataset
-│   ├── store/
-│   │   └── useStore.ts           # Zustand stores
-│   ├── types/
-│   │   └── index.ts              # TypeScript types
-│   └── lib/
-│       └── utils.ts              # Utility functions
-├── CODE_OF_CONDUCT.md
-├── CONTRIBUTING.md
-├── LICENSE
-├── README.md
-├── SECURITY.md
-├── package.json
-├── tsconfig.json
-├── tailwind.config.ts
-├── next.config.js
-└── .gitignore
-```
-
----
-
-## Contributing
-
-We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Quick Start for Contributors
-
-```bash
-# 1. Fork the repository
-# 2. Clone your fork
-git clone https://github.com/YOUR_USERNAME/financial-management-system.git
-
-# 3. Create a branch
-git checkout -b feature/your-feature
-
-# 4. Make changes and commit
-git add .
-git commit -m "feat: add new feature"
-
-# 5. Push and create PR
-git push origin feature/your-feature
-```
-
----
-
-## Security
-
-See [SECURITY.md](SECURITY.md) for security policies and vulnerability reporting.
+- **Stack inconsistency:** the application code targets **PostgreSQL** (Drizzle `pg-core`,
+  `drizzle.config.ts` dialect `postgresql`), but `replit.nix` provisions **MariaDB** and
+  `.replit` exposes port `3306`. These are leftover Replit scaffolding values — the
+  database of record is PostgreSQL. Reconcile or remove the MariaDB references before deploying.
 
 ---
 
 ## License
 
-This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
-
----
-
-## Acknowledgments
-
-- Built with [Next.js](https://nextjs.org/) by Vercel
-- UI components from [Shadcn UI](https://ui.shadcn.com/)
-- Icons by [Lucide](https://lucide.dev/)
-- Charts by [Recharts](https://recharts.org/)
-
----
-
-**Happy coding! 🚀**
+[MIT](LICENSE)

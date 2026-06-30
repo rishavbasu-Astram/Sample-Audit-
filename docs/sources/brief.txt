@@ -1,0 +1,11 @@
+we are making a financial portal which will be implemented into a existing system called astram we will be using their existing DB entities into our new database which we will be later migrating into their database , i will be giving u a list of features that we will require to develop and towards the end we will make document which our action on how we can implement each of these features and also suggest methods of development mainly on the technical side along with tools which will help our work be easier 
+These are the features :-
+Real time financial dashboard and unified ledger 
+asset( this where we will get the assets in the database from the exisiting AStram system )
+Sales ( account receivable :   
+1 customers 2 quotes 3 sales orders 4 invoices 5 sales receipts 6 recurring invoices 7 payment link 8 payment received 9 credit notes 
+Purchases ( accounts payable ) :
+1 vendors 2 expenses 3 recurring expenses 4 purchase orders 5 bills 6 recurrung bills 7 payments made 8 vendor credits 
+Banking : ( this is where we will be able to see all the accounts their with their speculated filters )
+Accountant :
+1 Manual journals 2 recurring journals 3 bulk updates 4 VAT payments 5 currency adjustments 6 chart of accounts 7 budgets 8 transaction locking
