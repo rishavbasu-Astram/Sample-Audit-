@@ -30,6 +30,15 @@ TRUNCATE TABLE purchase_orders;
 TRUNCATE TABLE journals;
 TRUNCATE TABLE cost_centers;
 TRUNCATE TABLE products;
+TRUNCATE TABLE budgets;
+TRUNCATE TABLE vat_payments;
+TRUNCATE TABLE currency_adjustments;
+TRUNCATE TABLE transaction_locks;
+TRUNCATE TABLE recurring_invoices;
+TRUNCATE TABLE payment_links;
+TRUNCATE TABLE sales_receipts;
+TRUNCATE TABLE recurring_bills;
+TRUNCATE TABLE recurring_expenses;
 SET FOREIGN_KEY_CHECKS = 1;
 
 INSERT INTO customers (name) VALUES
@@ -121,6 +130,41 @@ INSERT INTO products (code, name, category, unit, standard_cost, actual_cost, qu
   ('P-1003', 'Hydraulic Pump',  'Machinery',   'pcs', 880.00, 910.00,   300.00, true),
   ('P-1004', 'Polymer Casing',  'Plastics',    'pcs',   6.75,   6.40, 15000.00, true),
   ('P-1005', 'Assembly Labor',  'Service',     'hr',   45.00,  48.00,  5200.00, true);
+
+INSERT INTO budgets (name, fiscal_year, period, status, total_budgeted, total_actual, \`lines\`) VALUES
+  ('Operating Budget 2026', '2026', 'yearly',    'active', 1200000.00, 1080000.00, '[]'),
+  ('Marketing Budget H1',   '2026', 'quarterly', 'active',  300000.00,  318000.00, '[]');
+
+INSERT INTO vat_payments (period, due_date, vat_collected, vat_paid, net_vat, status) VALUES
+  ('Q1 2026', '2026-04-30', 45000.00, 32000.00, 13000.00, 'paid'),
+  ('Q2 2026', '2026-07-31', 52000.00, 38000.00, 14000.00, 'pending');
+
+INSERT INTO currency_adjustments (date, from_currency, to_currency, exchange_rate, adjustment_amount) VALUES
+  ('2026-06-15', 'USD', 'EUR', 0.920000, -2400.00),
+  ('2026-05-20', 'USD', 'GBP', 0.790000,  1850.00);
+
+INSERT INTO transaction_locks (lock_date, description) VALUES
+  ('2025-12-31', 'FY2025 year-end close');
+
+INSERT INTO recurring_invoices (customer_id, frequency, next_date, status, amount) VALUES
+  (1, 'monthly',   '2026-07-15', 'active', 12000.00),
+  (3, 'quarterly', '2026-09-01', 'active', 45000.00);
+
+INSERT INTO payment_links (title, amount, currency, url, status, expires_at) VALUES
+  ('Consulting Retainer', 25000.00, 'USD', 'https://pay.example.com/retainer', 'active', '2026-12-31'),
+  ('Workshop Ticket',      1500.00, 'USD', 'https://pay.example.com/workshop', 'active', NULL);
+
+INSERT INTO sales_receipts (receipt_number, customer_id, date, payment_method, amount, line_items) VALUES
+  ('SR-2026-0001', 5, '2026-06-12', 'Cash',        3200.00, '[]'),
+  ('SR-2026-0002', 2, '2026-06-22', 'Credit Card', 8750.00, '[]');
+
+INSERT INTO recurring_bills (vendor_id, frequency, next_date, status, amount) VALUES
+  (1, 'monthly', '2026-07-12', 'active', 50000.00),
+  (2, 'monthly', '2026-07-01', 'active', 28000.00);
+
+INSERT INTO recurring_expenses (vendor_id, category, amount, frequency, next_date, status) VALUES
+  (1,    'Cloud Infrastructure', 50000.00, 'monthly', '2026-07-12', 'active'),
+  (NULL, 'Software',              1200.00, 'monthly', '2026-07-05', 'active');
 `;
 
 async function main(): Promise<void> {
