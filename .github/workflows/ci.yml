@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  typecheck:
+    name: Install & typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # pnpm is required — the repo's `preinstall` guard blocks npm/yarn.
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # --ignore-scripts skips lifecycle scripts. This is deliberate: the repo's
+      # `preinstall` pnpm-only guard misfires under --frozen-lockfile (it doesn't
+      # see npm_config_user_agent) and would fail the job, and typecheck needs no
+      # native build scripts (esbuild etc.). Dependencies are still installed.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      # Full type safety across every workspace package (contract-first libs,
+      # API server, and frontend). No database is needed for typechecking.
+      - name: Typecheck (all packages)
+        run: pnpm run typecheck
