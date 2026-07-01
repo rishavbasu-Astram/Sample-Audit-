@@ -52,6 +52,7 @@ import type {
   CustomerInput,
   CustomerUpdate,
   DashboardSummary,
+  DueReminder,
   Expense,
   ExpenseInput,
   ExpenseUpdate,
@@ -77,6 +78,8 @@ import type {
   ListPurchaseOrdersParams,
   ListQuotesParams,
   ListRecurringProfilesParams,
+  ListReminderLogParams,
+  ListReminderRulesParams,
   ListSalesOrdersParams,
   ListSalesReceiptsParams,
   ListVendorCreditsParams,
@@ -109,6 +112,10 @@ import type {
   RecurringInvoiceUpdate,
   RecurringProfile,
   RecurringProfileInput,
+  ReminderLogEntry,
+  ReminderRule,
+  ReminderRuleInput,
+  ReminderRunResult,
   SalesOrder,
   SalesOrderInput,
   SalesOrderUpdate,
@@ -10067,6 +10074,575 @@ export function useListRecurringProfileChildren<TData = Awaited<ReturnType<typeo
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListRecurringProfileChildrenQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListReminderRulesUrl = (params?: ListReminderRulesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/reminder-rules?${stringifiedParams}` : `/api/reminder-rules`
+}
+
+export const listReminderRules = async (params?: ListReminderRulesParams, options?: RequestInit): Promise<ReminderRule[]> => {
+
+  return customFetch<ReminderRule[]>(getListReminderRulesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListReminderRulesQueryKey = (params?: ListReminderRulesParams,) => {
+    return [
+    `/api/reminder-rules`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListReminderRulesQueryOptions = <TData = Awaited<ReturnType<typeof listReminderRules>>, TError = ErrorType<unknown>>(params?: ListReminderRulesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReminderRules>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListReminderRulesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listReminderRules>>> = ({ signal }) => listReminderRules(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listReminderRules>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListReminderRulesQueryResult = NonNullable<Awaited<ReturnType<typeof listReminderRules>>>
+export type ListReminderRulesQueryError = ErrorType<unknown>
+
+
+
+export function useListReminderRules<TData = Awaited<ReturnType<typeof listReminderRules>>, TError = ErrorType<unknown>>(
+ params?: ListReminderRulesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReminderRules>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListReminderRulesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateReminderRuleUrl = () => {
+
+
+
+
+  return `/api/reminder-rules`
+}
+
+export const createReminderRule = async (reminderRuleInput: ReminderRuleInput, options?: RequestInit): Promise<ReminderRule> => {
+
+  return customFetch<ReminderRule>(getCreateReminderRuleUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      reminderRuleInput,)
+  }
+);}
+
+
+
+
+export const getCreateReminderRuleMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReminderRule>>, TError,{data: BodyType<ReminderRuleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createReminderRule>>, TError,{data: BodyType<ReminderRuleInput>}, TContext> => {
+
+const mutationKey = ['createReminderRule'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createReminderRule>>, {data: BodyType<ReminderRuleInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createReminderRule(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateReminderRuleMutationResult = NonNullable<Awaited<ReturnType<typeof createReminderRule>>>
+    export type CreateReminderRuleMutationBody = BodyType<ReminderRuleInput>
+    export type CreateReminderRuleMutationError = ErrorType<unknown>
+
+    export const useCreateReminderRule = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReminderRule>>, TError,{data: BodyType<ReminderRuleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createReminderRule>>,
+        TError,
+        {data: BodyType<ReminderRuleInput>},
+        TContext
+      > => {
+      return useMutation(getCreateReminderRuleMutationOptions(options));
+    }
+
+export const getGetReminderRuleUrl = (id: number,) => {
+
+
+
+
+  return `/api/reminder-rules/${id}`
+}
+
+export const getReminderRule = async (id: number, options?: RequestInit): Promise<ReminderRule> => {
+
+  return customFetch<ReminderRule>(getGetReminderRuleUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReminderRuleQueryKey = (id: number,) => {
+    return [
+    `/api/reminder-rules/${id}`
+    ] as const;
+    }
+
+
+export const getGetReminderRuleQueryOptions = <TData = Awaited<ReturnType<typeof getReminderRule>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReminderRule>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReminderRuleQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReminderRule>>> = ({ signal }) => getReminderRule(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReminderRule>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetReminderRuleQueryResult = NonNullable<Awaited<ReturnType<typeof getReminderRule>>>
+export type GetReminderRuleQueryError = ErrorType<unknown>
+
+
+
+export function useGetReminderRule<TData = Awaited<ReturnType<typeof getReminderRule>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReminderRule>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetReminderRuleQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateReminderRuleUrl = (id: number,) => {
+
+
+
+
+  return `/api/reminder-rules/${id}`
+}
+
+export const updateReminderRule = async (id: number,
+    reminderRuleInput: ReminderRuleInput, options?: RequestInit): Promise<ReminderRule> => {
+
+  return customFetch<ReminderRule>(getUpdateReminderRuleUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      reminderRuleInput,)
+  }
+);}
+
+
+
+
+export const getUpdateReminderRuleMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateReminderRule>>, TError,{id: number;data: BodyType<ReminderRuleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateReminderRule>>, TError,{id: number;data: BodyType<ReminderRuleInput>}, TContext> => {
+
+const mutationKey = ['updateReminderRule'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateReminderRule>>, {id: number;data: BodyType<ReminderRuleInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateReminderRule(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateReminderRuleMutationResult = NonNullable<Awaited<ReturnType<typeof updateReminderRule>>>
+    export type UpdateReminderRuleMutationBody = BodyType<ReminderRuleInput>
+    export type UpdateReminderRuleMutationError = ErrorType<unknown>
+
+    export const useUpdateReminderRule = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateReminderRule>>, TError,{id: number;data: BodyType<ReminderRuleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateReminderRule>>,
+        TError,
+        {id: number;data: BodyType<ReminderRuleInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateReminderRuleMutationOptions(options));
+    }
+
+export const getDeleteReminderRuleUrl = (id: number,) => {
+
+
+
+
+  return `/api/reminder-rules/${id}`
+}
+
+export const deleteReminderRule = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteReminderRuleUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteReminderRuleMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReminderRule>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteReminderRule>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteReminderRule'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteReminderRule>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteReminderRule(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteReminderRuleMutationResult = NonNullable<Awaited<ReturnType<typeof deleteReminderRule>>>
+
+    export type DeleteReminderRuleMutationError = ErrorType<unknown>
+
+    export const useDeleteReminderRule = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReminderRule>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteReminderRule>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteReminderRuleMutationOptions(options));
+    }
+
+export const getRunRemindersNowUrl = () => {
+
+
+
+
+  return `/api/reminders/run-now`
+}
+
+/**
+ * @summary Dispatch all due reminders now
+ */
+export const runRemindersNow = async ( options?: RequestInit): Promise<ReminderRunResult> => {
+
+  return customFetch<ReminderRunResult>(getRunRemindersNowUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getRunRemindersNowMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runRemindersNow>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runRemindersNow>>, TError,void, TContext> => {
+
+const mutationKey = ['runRemindersNow'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runRemindersNow>>, void> = () => {
+
+
+          return  runRemindersNow(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunRemindersNowMutationResult = NonNullable<Awaited<ReturnType<typeof runRemindersNow>>>
+
+    export type RunRemindersNowMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Dispatch all due reminders now
+ */
+export const useRunRemindersNow = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runRemindersNow>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runRemindersNow>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getRunRemindersNowMutationOptions(options));
+    }
+
+export const getPreviewRemindersUrl = () => {
+
+
+
+
+  return `/api/reminders/preview`
+}
+
+/**
+ * @summary Reminders that would fire now (dry run)
+ */
+export const previewReminders = async ( options?: RequestInit): Promise<DueReminder[]> => {
+
+  return customFetch<DueReminder[]>(getPreviewRemindersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPreviewRemindersQueryKey = () => {
+    return [
+    `/api/reminders/preview`
+    ] as const;
+    }
+
+
+export const getPreviewRemindersQueryOptions = <TData = Awaited<ReturnType<typeof previewReminders>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof previewReminders>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPreviewRemindersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof previewReminders>>> = ({ signal }) => previewReminders({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof previewReminders>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type PreviewRemindersQueryResult = NonNullable<Awaited<ReturnType<typeof previewReminders>>>
+export type PreviewRemindersQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Reminders that would fire now (dry run)
+ */
+
+export function usePreviewReminders<TData = Awaited<ReturnType<typeof previewReminders>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof previewReminders>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getPreviewRemindersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListReminderLogUrl = (params?: ListReminderLogParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/reminders/log?${stringifiedParams}` : `/api/reminders/log`
+}
+
+export const listReminderLog = async (params?: ListReminderLogParams, options?: RequestInit): Promise<ReminderLogEntry[]> => {
+
+  return customFetch<ReminderLogEntry[]>(getListReminderLogUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListReminderLogQueryKey = (params?: ListReminderLogParams,) => {
+    return [
+    `/api/reminders/log`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListReminderLogQueryOptions = <TData = Awaited<ReturnType<typeof listReminderLog>>, TError = ErrorType<unknown>>(params?: ListReminderLogParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReminderLog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListReminderLogQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listReminderLog>>> = ({ signal }) => listReminderLog(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listReminderLog>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListReminderLogQueryResult = NonNullable<Awaited<ReturnType<typeof listReminderLog>>>
+export type ListReminderLogQueryError = ErrorType<unknown>
+
+
+
+export function useListReminderLog<TData = Awaited<ReturnType<typeof listReminderLog>>, TError = ErrorType<unknown>>(
+ params?: ListReminderLogParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReminderLog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListReminderLogQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

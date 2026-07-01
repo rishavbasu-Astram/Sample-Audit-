@@ -2520,3 +2520,130 @@ export const ListRecurringProfileChildrenResponseItem = zod.object({
 export const ListRecurringProfileChildrenResponse = zod.array(ListRecurringProfileChildrenResponseItem)
 
 
+export const ListReminderRulesQueryParams = zod.object({
+  "active": zod.coerce.string().optional()
+})
+
+export const ListReminderRulesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "offsetDays": zod.number(),
+  "repeatEveryDays": zod.number().nullish(),
+  "maxReminders": zod.number().nullish(),
+  "channel": zod.string(),
+  "subject": zod.string(),
+  "bodyTemplate": zod.string(),
+  "active": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const ListReminderRulesResponse = zod.array(ListReminderRulesResponseItem)
+
+
+export const CreateReminderRuleBody = zod.object({
+  "name": zod.string(),
+  "offsetDays": zod.number().optional(),
+  "repeatEveryDays": zod.number().optional(),
+  "maxReminders": zod.number().optional(),
+  "channel": zod.string().optional(),
+  "subject": zod.string().optional(),
+  "bodyTemplate": zod.string().optional(),
+  "active": zod.boolean().optional()
+})
+
+
+export const GetReminderRuleParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetReminderRuleResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "offsetDays": zod.number(),
+  "repeatEveryDays": zod.number().nullish(),
+  "maxReminders": zod.number().nullish(),
+  "channel": zod.string(),
+  "subject": zod.string(),
+  "bodyTemplate": zod.string(),
+  "active": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+export const UpdateReminderRuleParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateReminderRuleBody = zod.object({
+  "name": zod.string(),
+  "offsetDays": zod.number().optional(),
+  "repeatEveryDays": zod.number().optional(),
+  "maxReminders": zod.number().optional(),
+  "channel": zod.string().optional(),
+  "subject": zod.string().optional(),
+  "bodyTemplate": zod.string().optional(),
+  "active": zod.boolean().optional()
+})
+
+export const UpdateReminderRuleResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "offsetDays": zod.number(),
+  "repeatEveryDays": zod.number().nullish(),
+  "maxReminders": zod.number().nullish(),
+  "channel": zod.string(),
+  "subject": zod.string(),
+  "bodyTemplate": zod.string(),
+  "active": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+export const DeleteReminderRuleParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Reminders that would fire now (dry run)
+ */
+export const PreviewRemindersResponseItem = zod.object({
+  "invoiceId": zod.number(),
+  "invoiceNumber": zod.string(),
+  "ruleId": zod.number(),
+  "ruleName": zod.string(),
+  "customerId": zod.number(),
+  "customerName": zod.string().nullish(),
+  "occurrenceDate": zod.string(),
+  "dueDate": zod.string(),
+  "amountDue": zod.number(),
+  "daysOverdue": zod.number(),
+  "channel": zod.string(),
+  "subject": zod.string(),
+  "message": zod.string()
+})
+export const PreviewRemindersResponse = zod.array(PreviewRemindersResponseItem)
+
+
+export const ListReminderLogQueryParams = zod.object({
+  "limit": zod.coerce.number().optional()
+})
+
+export const ListReminderLogResponseItem = zod.object({
+  "id": zod.number(),
+  "invoiceId": zod.number(),
+  "invoiceNumber": zod.string().nullish(),
+  "ruleId": zod.number(),
+  "customerId": zod.number(),
+  "customerName": zod.string().nullish(),
+  "occurrenceDate": zod.string(),
+  "dueDate": zod.string(),
+  "amountDue": zod.number(),
+  "channel": zod.string(),
+  "subject": zod.string(),
+  "message": zod.string(),
+  "status": zod.string(),
+  "sentAt": zod.string()
+})
+export const ListReminderLogResponse = zod.array(ListReminderLogResponseItem)
+
+

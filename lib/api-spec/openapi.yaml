@@ -38,6 +38,7 @@ tags:
   - name: products
   - name: profitability
   - name: recurring-profiles
+  - name: payment-reminders
 
 paths:
   /healthz:
@@ -2540,6 +2541,142 @@ paths:
                 items:
                   $ref: "#/components/schemas/RecurringChild"
 
+  /reminder-rules:
+    get:
+      operationId: listReminderRules
+      tags: [payment-reminders]
+      parameters:
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of reminder rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReminderRule"
+    post:
+      operationId: createReminderRule
+      tags: [payment-reminders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReminderRuleInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReminderRule"
+
+  /reminder-rules/{id}:
+    get:
+      operationId: getReminderRule
+      tags: [payment-reminders]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reminder rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReminderRule"
+    patch:
+      operationId: updateReminderRule
+      tags: [payment-reminders]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReminderRuleInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReminderRule"
+    delete:
+      operationId: deleteReminderRule
+      tags: [payment-reminders]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /reminders/run-now:
+    post:
+      operationId: runRemindersNow
+      tags: [payment-reminders]
+      summary: Dispatch all due reminders now
+      responses:
+        "201":
+          description: Dispatch result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReminderRunResult"
+
+  /reminders/preview:
+    get:
+      operationId: previewReminders
+      tags: [payment-reminders]
+      summary: Reminders that would fire now (dry run)
+      responses:
+        "200":
+          description: Due reminders (not sent)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DueReminder"
+
+  /reminders/log:
+    get:
+      operationId: listReminderLog
+      tags: [payment-reminders]
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Recent dispatched reminders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReminderLogEntry"
+
 components:
   schemas:
     HealthStatus:
@@ -4355,3 +4492,148 @@ components:
         status:
           type: string
       required: [id, profileId, entityType, entityId, amount, generatedAt, status]
+
+    ReminderRule:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        offsetDays:
+          type: integer
+        repeatEveryDays:
+          type: ["integer", "null"]
+        maxReminders:
+          type: ["integer", "null"]
+        channel:
+          type: string
+        subject:
+          type: string
+        bodyTemplate:
+          type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, name, offsetDays, channel, subject, bodyTemplate, active, createdAt]
+
+    ReminderRuleInput:
+      type: object
+      properties:
+        name:
+          type: string
+        offsetDays:
+          type: integer
+        repeatEveryDays:
+          type: integer
+        maxReminders:
+          type: integer
+        channel:
+          type: string
+        subject:
+          type: string
+        bodyTemplate:
+          type: string
+        active:
+          type: boolean
+      required: [name]
+
+    DueReminder:
+      type: object
+      properties:
+        invoiceId:
+          type: integer
+        invoiceNumber:
+          type: string
+        ruleId:
+          type: integer
+        ruleName:
+          type: string
+        customerId:
+          type: integer
+        customerName:
+          type: ["string", "null"]
+        occurrenceDate:
+          type: string
+        dueDate:
+          type: string
+        amountDue:
+          type: number
+        daysOverdue:
+          type: integer
+        channel:
+          type: string
+        subject:
+          type: string
+        message:
+          type: string
+      required:
+        [
+          invoiceId,
+          invoiceNumber,
+          ruleId,
+          ruleName,
+          customerId,
+          occurrenceDate,
+          dueDate,
+          amountDue,
+          daysOverdue,
+          channel,
+          subject,
+          message,
+        ]
+
+    ReminderLogEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        invoiceId:
+          type: integer
+        invoiceNumber:
+          type: ["string", "null"]
+        ruleId:
+          type: integer
+        customerId:
+          type: integer
+        customerName:
+          type: ["string", "null"]
+        occurrenceDate:
+          type: string
+        dueDate:
+          type: string
+        amountDue:
+          type: number
+        channel:
+          type: string
+        subject:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+        sentAt:
+          type: string
+      required:
+        [
+          id,
+          invoiceId,
+          ruleId,
+          customerId,
+          occurrenceDate,
+          dueDate,
+          amountDue,
+          channel,
+          subject,
+          message,
+          status,
+          sentAt,
+        ]
+
+    ReminderRunResult:
+      type: object
+      properties:
+        generated:
+          type: integer
+      required: [generated]

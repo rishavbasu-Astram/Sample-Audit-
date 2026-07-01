@@ -39,6 +39,7 @@ import { ProductCostsPage } from "@/pages/controlling/product-costs";
 import { ProfitabilityPage } from "@/pages/controlling/profitability";
 
 import { RecurringProfilesPage } from "@/pages/automation/recurring-profiles";
+import { PaymentRemindersPage } from "@/pages/automation/payment-reminders";
 
 import { AuditLedgerPage } from "@/pages/audit/ledger";
 
@@ -103,6 +104,7 @@ function Router() {
 
         {/* Automation */}
         <Route path="/automation/recurring-profiles" component={RecurringProfilesPage} />
+        <Route path="/automation/payment-reminders" component={PaymentRemindersPage} />
 
         {/* Security */}
         <Route path="/audit/ledger" component={AuditLedgerPage} />

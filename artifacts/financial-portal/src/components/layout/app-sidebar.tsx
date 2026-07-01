@@ -41,6 +41,7 @@ import {
   Network,
   Boxes,
   TrendingUp,
+  Bell,
   ShieldCheck
 } from "lucide-react";
 
@@ -116,6 +117,7 @@ export function AppSidebar() {
       icon: Repeat,
       items: [
         { title: "Recurring Profiles", url: "/automation/recurring-profiles", icon: Repeat },
+        { title: "Payment Reminders", url: "/automation/payment-reminders", icon: Bell },
       ]
     },
     {
