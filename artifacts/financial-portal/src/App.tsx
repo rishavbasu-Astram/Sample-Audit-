@@ -34,6 +34,8 @@ import { VatPaymentsPage } from "@/pages/accountant/vat-payments";
 import { CurrencyAdjustmentsPage } from "@/pages/accountant/currency-adjustments";
 import { TransactionLockingPage } from "@/pages/accountant/transaction-locking";
 
+import { AuditLedgerPage } from "@/pages/audit/ledger";
+
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -87,7 +89,9 @@ function Router() {
         <Route path="/accountant/vat-payments" component={VatPaymentsPage} />
         <Route path="/accountant/currency-adjustments" component={CurrencyAdjustmentsPage} />
         <Route path="/accountant/transaction-locking" component={TransactionLockingPage} />
-        
+
+        <Route path="/audit/ledger" component={AuditLedgerPage} />
+
         <Route component={NotFound} />
       </Switch>
     </AppLayout>

@@ -6,6 +6,7 @@ import salesRouter from "./sales";
 import purchasesRouter from "./purchases";
 import bankingRouter from "./banking";
 import accountantRouter from "./accountant";
+import auditRouter from "./audit";
 import pdfRouter from "./pdf";
 
 const router: IRouter = Router();
@@ -17,6 +18,7 @@ router.use(salesRouter);
 router.use(purchasesRouter);
 router.use(bankingRouter);
 router.use(accountantRouter);
+router.use(auditRouter);
 router.use(pdfRouter);
 
 export default router;

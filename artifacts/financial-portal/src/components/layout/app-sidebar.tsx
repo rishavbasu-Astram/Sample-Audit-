@@ -36,8 +36,10 @@ import {
   Target,
   Banknote,
   Calculator,
-  Lock
+  Lock,
+  ShieldCheck
 } from "lucide-react";
+import astramLogo from "@/assets/astram-logo.png";
 
 export function AppSidebar() {
   const [location] = useLocation();
@@ -96,18 +98,21 @@ export function AppSidebar() {
         { title: "Currency Adjustments", url: "/accountant/currency-adjustments", icon: Calculator },
         { title: "Transaction Locking", url: "/accountant/transaction-locking", icon: Lock },
       ]
+    },
+    {
+      title: "Security",
+      items: [
+        { title: "Audit Ledger", url: "/audit/ledger", icon: ShieldCheck },
+      ]
     }
   ];
 
   return (
     <Sidebar>
       <SidebarHeader className="py-4 px-4 border-b">
-        <div className="flex items-center gap-2 font-bold text-lg text-primary">
-          <div className="w-8 h-8 rounded bg-primary text-primary-foreground flex items-center justify-center">
-            A
-          </div>
-          Astram
-        </div>
+        <Link href="/" className="flex items-center">
+          <img src={astramLogo} alt="ASTRAM" className="h-8 w-auto" />
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         {navigation.map((section) => (

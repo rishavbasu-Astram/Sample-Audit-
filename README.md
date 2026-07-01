@@ -23,6 +23,7 @@ production database. See [`docs/ASTRAM_MIGRATION.md`](docs/ASTRAM_MIGRATION.md).
 | **Purchases (Accounts Payable)** | ✅ Built | Vendors · Expenses · Recurring Expenses · Purchase Orders · Bills · Recurring Bills · Payments Made · Vendor Credits |
 | **Banking & Reconciliation** | ✅ Built | Bank accounts with running balances, transaction ledger with credit/debit tracking |
 | **Accountant** | ✅ Built | Chart of Accounts · Manual & Recurring Journals (double-entry) · Budgets (vs actual) · VAT Payments · Currency Adjustments · Transaction Locking |
+| **Security — Audit Ledger** | ✅ Built | Append-only, hash-chained audit ledger of every change with a chain-integrity verifier (blockchain-grade tamper evidence) — see [`docs/SECURITY_LEDGER.md`](docs/SECURITY_LEDGER.md) |
 | **Cost Center Accounting** | 🔲 Planned | Not yet implemented |
 | **Product Cost Controlling** | 🔲 Planned | Not yet implemented |
 | **Profitability Analysis** | 🔲 Planned | Not yet implemented |
@@ -116,6 +117,8 @@ and frontend together with the dev proxy wired up.
 - [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) — how each feature is/should be implemented, methods, and recommended tools
 - [`docs/ASTRAM_MIGRATION.md`](docs/ASTRAM_MIGRATION.md) — strategy for migrating into the Astram database
 - [`docs/LOCAL_DEV.md`](docs/LOCAL_DEV.md) — run the full stack locally on Windows/macOS/Linux
+- [`docs/SECURITY_LEDGER.md`](docs/SECURITY_LEDGER.md) — the tamper-evident, hash-chained audit ledger
+- [`docs/ZOHO_BOOKS_BLUEPRINT.md`](docs/ZOHO_BOOKS_BLUEPRINT.md) — full Zoho Books feature blueprint (data models, APIs, workflows, automations) mapped to this stack, for building the product out. Per-module source files in [`docs/zoho-blueprint/`](docs/zoho-blueprint)
 - [`docs/sources/`](docs/sources) — original brief and product notes this work is based on
 - `replit.md` — environment/agent context for the Replit workspace this was scaffolded in
 
