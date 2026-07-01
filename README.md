@@ -26,6 +26,7 @@ production database. See [`docs/ASTRAM_MIGRATION.md`](docs/ASTRAM_MIGRATION.md).
 | **Cost Center Accounting** | ✅ Built | Cost centers with manager, budgeted vs. actual, and variance |
 | **Product Cost Controlling** | ✅ Built | Products with standard vs. actual cost and unit/total cost variance |
 | **Profitability Analysis** | ✅ Built | Contribution margin by month and customer (accrual, ex-tax) |
+| **Security — Audit Ledger** | ✅ Built | Append-only, hash-chained audit ledger of every change with a chain-integrity verifier (blockchain-grade tamper evidence) — see [`docs/SECURITY_LEDGER.md`](docs/SECURITY_LEDGER.md) |
 
 Full feature breakdown and the "SAP Finance alternative" vision:
 [`docs/FEATURES.md`](docs/FEATURES.md). Per-feature implementation plan with methods
@@ -116,6 +117,8 @@ and frontend together with the dev proxy wired up.
 - [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) — how each feature is/should be implemented, methods, and recommended tools
 - [`docs/ASTRAM_MIGRATION.md`](docs/ASTRAM_MIGRATION.md) — strategy for migrating into the Astram database
 - [`docs/LOCAL_DEV.md`](docs/LOCAL_DEV.md) — run the full stack locally on Windows/macOS/Linux
+- [`docs/SECURITY_LEDGER.md`](docs/SECURITY_LEDGER.md) — the tamper-evident, hash-chained audit ledger
+- [`docs/ZOHO_BOOKS_BLUEPRINT.md`](docs/ZOHO_BOOKS_BLUEPRINT.md) — full Zoho Books feature blueprint (data models, APIs, workflows, automations) mapped to this stack, for building the product out. Per-module source files in [`docs/zoho-blueprint/`](docs/zoho-blueprint)
 - [`docs/sources/`](docs/sources) — original brief and product notes this work is based on
 - `replit.md` — environment/agent context for the Replit workspace this was scaffolded in
 

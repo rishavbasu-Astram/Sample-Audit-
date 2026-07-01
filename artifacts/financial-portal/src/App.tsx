@@ -38,6 +38,8 @@ import { CostCentersPage } from "@/pages/controlling/cost-centers";
 import { ProductCostsPage } from "@/pages/controlling/product-costs";
 import { ProfitabilityPage } from "@/pages/controlling/profitability";
 
+import { AuditLedgerPage } from "@/pages/audit/ledger";
+
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -96,6 +98,9 @@ function Router() {
         <Route path="/controlling/cost-centers" component={CostCentersPage} />
         <Route path="/controlling/product-costs" component={ProductCostsPage} />
         <Route path="/controlling/profitability" component={ProfitabilityPage} />
+
+        {/* Security */}
+        <Route path="/audit/ledger" component={AuditLedgerPage} />
 
         <Route component={NotFound} />
       </Switch>

@@ -40,7 +40,8 @@ import {
   Gauge,
   Network,
   Boxes,
-  TrendingUp
+  TrendingUp,
+  ShieldCheck
 } from "lucide-react";
 
 export function AppSidebar() {
@@ -108,6 +109,12 @@ export function AppSidebar() {
         { title: "Cost Centers", url: "/controlling/cost-centers", icon: Network },
         { title: "Product Costs", url: "/controlling/product-costs", icon: Boxes },
         { title: "Profitability", url: "/controlling/profitability", icon: TrendingUp },
+      ]
+    },
+    {
+      title: "Security",
+      items: [
+        { title: "Audit Ledger", url: "/audit/ledger", icon: ShieldCheck },
       ]
     }
   ];
