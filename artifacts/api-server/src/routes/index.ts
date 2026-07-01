@@ -7,6 +7,7 @@ import purchasesRouter from "./purchases";
 import bankingRouter from "./banking";
 import accountantRouter from "./accountant";
 import controllingRouter from "./controlling";
+import automationRouter from "./automation";
 import auditRouter from "./audit";
 import pdfRouter from "./pdf";
 
@@ -20,6 +21,7 @@ router.use(purchasesRouter);
 router.use(bankingRouter);
 router.use(accountantRouter);
 router.use(controllingRouter);
+router.use(automationRouter);
 router.use(auditRouter);
 router.use(pdfRouter);
 

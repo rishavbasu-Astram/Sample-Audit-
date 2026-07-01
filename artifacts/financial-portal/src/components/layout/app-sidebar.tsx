@@ -112,6 +112,13 @@ export function AppSidebar() {
       ]
     },
     {
+      title: "Automation",
+      icon: Repeat,
+      items: [
+        { title: "Recurring Profiles", url: "/automation/recurring-profiles", icon: Repeat },
+      ]
+    },
+    {
       title: "Security",
       items: [
         { title: "Audit Ledger", url: "/audit/ledger", icon: ShieldCheck },

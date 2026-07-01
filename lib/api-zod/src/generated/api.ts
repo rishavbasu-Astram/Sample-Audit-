@@ -2382,3 +2382,141 @@ export const GetProfitabilityReportResponse = zod.object({
 })
 
 
+export const ListRecurringProfilesQueryParams = zod.object({
+  "status": zod.coerce.string().optional()
+})
+
+export const ListRecurringProfilesResponseItem = zod.object({
+  "id": zod.number(),
+  "entityType": zod.string(),
+  "name": zod.string(),
+  "customerId": zod.number(),
+  "customerName": zod.string().nullish(),
+  "templateData": zod.object({
+  "subtotal": zod.number(),
+  "taxAmount": zod.number(),
+  "total": zod.number(),
+  "dueInDays": zod.number(),
+  "notes": zod.string().optional(),
+  "lineItems": zod.array(zod.unknown()).optional()
+}),
+  "frequency": zod.string(),
+  "customDays": zod.number().nullish(),
+  "automationMode": zod.string(),
+  "nextRunAt": zod.string(),
+  "lastRunAt": zod.string().nullish(),
+  "endAt": zod.string().nullish(),
+  "status": zod.string(),
+  "childCount": zod.number(),
+  "createdAt": zod.string()
+})
+export const ListRecurringProfilesResponse = zod.array(ListRecurringProfilesResponseItem)
+
+
+export const CreateRecurringProfileBody = zod.object({
+  "name": zod.string(),
+  "customerId": zod.number(),
+  "frequency": zod.string(),
+  "customDays": zod.number().optional(),
+  "automationMode": zod.string().optional(),
+  "subtotal": zod.number(),
+  "taxAmount": zod.number().optional(),
+  "dueInDays": zod.number().optional(),
+  "notes": zod.string().optional(),
+  "startDate": zod.string().optional()
+})
+
+
+export const GetRecurringProfileParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetRecurringProfileResponse = zod.object({
+  "id": zod.number(),
+  "entityType": zod.string(),
+  "name": zod.string(),
+  "customerId": zod.number(),
+  "customerName": zod.string().nullish(),
+  "templateData": zod.object({
+  "subtotal": zod.number(),
+  "taxAmount": zod.number(),
+  "total": zod.number(),
+  "dueInDays": zod.number(),
+  "notes": zod.string().optional(),
+  "lineItems": zod.array(zod.unknown()).optional()
+}),
+  "frequency": zod.string(),
+  "customDays": zod.number().nullish(),
+  "automationMode": zod.string(),
+  "nextRunAt": zod.string(),
+  "lastRunAt": zod.string().nullish(),
+  "endAt": zod.string().nullish(),
+  "status": zod.string(),
+  "childCount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+export const DeleteRecurringProfileParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Toggle a profile between active and paused
+ */
+export const PauseRecurringProfileParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const PauseRecurringProfileResponse = zod.object({
+  "id": zod.number(),
+  "entityType": zod.string(),
+  "name": zod.string(),
+  "customerId": zod.number(),
+  "customerName": zod.string().nullish(),
+  "templateData": zod.object({
+  "subtotal": zod.number(),
+  "taxAmount": zod.number(),
+  "total": zod.number(),
+  "dueInDays": zod.number(),
+  "notes": zod.string().optional(),
+  "lineItems": zod.array(zod.unknown()).optional()
+}),
+  "frequency": zod.string(),
+  "customDays": zod.number().nullish(),
+  "automationMode": zod.string(),
+  "nextRunAt": zod.string(),
+  "lastRunAt": zod.string().nullish(),
+  "endAt": zod.string().nullish(),
+  "status": zod.string(),
+  "childCount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Manually generate the next child now
+ */
+export const RunRecurringProfileNowParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const ListRecurringProfileChildrenParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListRecurringProfileChildrenResponseItem = zod.object({
+  "id": zod.number(),
+  "profileId": zod.number(),
+  "entityType": zod.string(),
+  "entityId": zod.number(),
+  "entityNumber": zod.string().nullish(),
+  "amount": zod.number(),
+  "generatedAt": zod.string(),
+  "status": zod.string()
+})
+export const ListRecurringProfileChildrenResponse = zod.array(ListRecurringProfileChildrenResponseItem)
+
+
