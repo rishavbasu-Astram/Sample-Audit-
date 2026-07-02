@@ -41,6 +41,7 @@ import {
   Network,
   Boxes,
   TrendingUp,
+  Bell,
   ShieldCheck
 } from "lucide-react";
 
@@ -109,6 +110,14 @@ export function AppSidebar() {
         { title: "Cost Centers", url: "/controlling/cost-centers", icon: Network },
         { title: "Product Costs", url: "/controlling/product-costs", icon: Boxes },
         { title: "Profitability", url: "/controlling/profitability", icon: TrendingUp },
+      ]
+    },
+    {
+      title: "Automation",
+      icon: Repeat,
+      items: [
+        { title: "Recurring Profiles", url: "/automation/recurring-profiles", icon: Repeat },
+        { title: "Payment Reminders", url: "/automation/payment-reminders", icon: Bell },
       ]
     },
     {

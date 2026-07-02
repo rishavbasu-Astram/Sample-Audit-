@@ -38,6 +38,9 @@ import { CostCentersPage } from "@/pages/controlling/cost-centers";
 import { ProductCostsPage } from "@/pages/controlling/product-costs";
 import { ProfitabilityPage } from "@/pages/controlling/profitability";
 
+import { RecurringProfilesPage } from "@/pages/automation/recurring-profiles";
+import { PaymentRemindersPage } from "@/pages/automation/payment-reminders";
+
 import { AuditLedgerPage } from "@/pages/audit/ledger";
 
 import NotFound from "@/pages/not-found";
@@ -98,6 +101,10 @@ function Router() {
         <Route path="/controlling/cost-centers" component={CostCentersPage} />
         <Route path="/controlling/product-costs" component={ProductCostsPage} />
         <Route path="/controlling/profitability" component={ProfitabilityPage} />
+
+        {/* Automation */}
+        <Route path="/automation/recurring-profiles" component={RecurringProfilesPage} />
+        <Route path="/automation/payment-reminders" component={PaymentRemindersPage} />
 
         {/* Security */}
         <Route path="/audit/ledger" component={AuditLedgerPage} />

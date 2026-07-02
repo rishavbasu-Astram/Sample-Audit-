@@ -930,6 +930,128 @@ export interface ProfitabilityReport {
   byCustomer: ProfitabilityCustomer[];
 }
 
+export interface InvoiceTemplate {
+  subtotal: number;
+  taxAmount: number;
+  total: number;
+  dueInDays: number;
+  notes?: string;
+  lineItems?: unknown[];
+}
+
+export interface RecurringProfile {
+  id: number;
+  entityType: string;
+  name: string;
+  customerId: number;
+  /** @nullable */
+  customerName?: string | null;
+  templateData: InvoiceTemplate;
+  frequency: string;
+  /** @nullable */
+  customDays?: number | null;
+  automationMode: string;
+  nextRunAt: string;
+  /** @nullable */
+  lastRunAt?: string | null;
+  /** @nullable */
+  endAt?: string | null;
+  status: string;
+  childCount: number;
+  createdAt: string;
+}
+
+export interface RecurringProfileInput {
+  name: string;
+  customerId: number;
+  frequency: string;
+  customDays?: number;
+  automationMode?: string;
+  subtotal: number;
+  taxAmount?: number;
+  dueInDays?: number;
+  notes?: string;
+  startDate?: string;
+}
+
+export interface RecurringChild {
+  id: number;
+  profileId: number;
+  entityType: string;
+  entityId: number;
+  /** @nullable */
+  entityNumber?: string | null;
+  amount: number;
+  generatedAt: string;
+  status: string;
+}
+
+export interface ReminderRule {
+  id: number;
+  name: string;
+  offsetDays: number;
+  /** @nullable */
+  repeatEveryDays?: number | null;
+  /** @nullable */
+  maxReminders?: number | null;
+  channel: string;
+  subject: string;
+  bodyTemplate: string;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface ReminderRuleInput {
+  name: string;
+  offsetDays?: number;
+  repeatEveryDays?: number;
+  maxReminders?: number;
+  channel?: string;
+  subject?: string;
+  bodyTemplate?: string;
+  active?: boolean;
+}
+
+export interface DueReminder {
+  invoiceId: number;
+  invoiceNumber: string;
+  ruleId: number;
+  ruleName: string;
+  customerId: number;
+  /** @nullable */
+  customerName?: string | null;
+  occurrenceDate: string;
+  dueDate: string;
+  amountDue: number;
+  daysOverdue: number;
+  channel: string;
+  subject: string;
+  message: string;
+}
+
+export interface ReminderLogEntry {
+  id: number;
+  invoiceId: number;
+  /** @nullable */
+  invoiceNumber?: string | null;
+  ruleId: number;
+  customerId: number;
+  /** @nullable */
+  customerName?: string | null;
+  occurrenceDate: string;
+  dueDate: string;
+  amountDue: number;
+  channel: string;
+  subject: string;
+  message: string;
+  status: string;
+  sentAt: string;
+}
+
+export interface ReminderRunResult {
+  generated: number;
+}
+
 export type GetCashFlowParams = {
 period?: GetCashFlowPeriod;
 };
@@ -1031,4 +1153,16 @@ export const ListJournalsType = {
   manual: 'manual',
   recurring: 'recurring',
 } as const;
+
+export type ListRecurringProfilesParams = {
+status?: string;
+};
+
+export type ListReminderRulesParams = {
+active?: string;
+};
+
+export type ListReminderLogParams = {
+limit?: number;
+};
 
