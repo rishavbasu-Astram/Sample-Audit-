@@ -41,6 +41,10 @@ import { ProfitabilityPage } from "@/pages/controlling/profitability";
 import { RecurringProfilesPage } from "@/pages/automation/recurring-profiles";
 import { PaymentRemindersPage } from "@/pages/automation/payment-reminders";
 
+import { ItemsPage } from "@/pages/items/items";
+import { TaxRatesPage } from "@/pages/accountant/tax-rates";
+import { FinancialReportsPage } from "@/pages/reports/financial-reports";
+
 import { AuditLedgerPage } from "@/pages/audit/ledger";
 
 import NotFound from "@/pages/not-found";
@@ -105,6 +109,15 @@ function Router() {
         {/* Automation */}
         <Route path="/automation/recurring-profiles" component={RecurringProfilesPage} />
         <Route path="/automation/payment-reminders" component={PaymentRemindersPage} />
+
+        {/* Inventory */}
+        <Route path="/items" component={ItemsPage} />
+
+        {/* Taxes */}
+        <Route path="/accountant/tax-rates" component={TaxRatesPage} />
+
+        {/* Reports */}
+        <Route path="/reports/financial" component={FinancialReportsPage} />
 
         {/* Security */}
         <Route path="/audit/ledger" component={AuditLedgerPage} />

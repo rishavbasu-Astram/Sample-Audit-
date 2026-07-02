@@ -6,4 +6,6 @@ export * from "./accountant";
 export * from "./controlling";
 export * from "./automation";
 export * from "./reminders";
+export * from "./items";
+export * from "./taxes";
 export * from "./audit";

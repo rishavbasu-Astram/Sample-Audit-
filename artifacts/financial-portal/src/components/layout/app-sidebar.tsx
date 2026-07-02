@@ -42,6 +42,9 @@ import {
   Boxes,
   TrendingUp,
   Bell,
+  Package,
+  Percent,
+  BarChart3,
   ShieldCheck
 } from "lucide-react";
 
@@ -54,6 +57,12 @@ export function AppSidebar() {
       items: [
         { title: "Dashboard", url: "/", icon: LayoutDashboard },
         { title: "Assets", url: "/assets", icon: Box },
+      ]
+    },
+    {
+      title: "Inventory",
+      items: [
+        { title: "Items", url: "/items", icon: Package },
       ]
     },
     {
@@ -101,6 +110,7 @@ export function AppSidebar() {
         { title: "VAT Payments", url: "/accountant/vat-payments", icon: Banknote },
         { title: "Currency Adjustments", url: "/accountant/currency-adjustments", icon: Calculator },
         { title: "Transaction Locking", url: "/accountant/transaction-locking", icon: Lock },
+        { title: "Tax Rates", url: "/accountant/tax-rates", icon: Percent },
       ]
     },
     {
@@ -118,6 +128,12 @@ export function AppSidebar() {
       items: [
         { title: "Recurring Profiles", url: "/automation/recurring-profiles", icon: Repeat },
         { title: "Payment Reminders", url: "/automation/payment-reminders", icon: Bell },
+      ]
+    },
+    {
+      title: "Reports",
+      items: [
+        { title: "Financial Reports", url: "/reports/financial", icon: BarChart3 },
       ]
     },
     {

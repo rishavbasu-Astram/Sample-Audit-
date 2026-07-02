@@ -33,3 +33,15 @@ export const bankTransactionsTable = mysqlTable("bank_transactions", {
 export const insertBankTransactionSchema = createInsertSchema(bankTransactionsTable).omit({ id: true, createdAt: true });
 export type InsertBankTransaction = z.infer<typeof insertBankTransactionSchema>;
 export type BankTransaction = typeof bankTransactionsTable.$inferSelect;
+
+export const bankTransfersTable = mysqlTable("bank_transfers", {
+  id: int("id").autoincrement().primaryKey(),
+  fromAccountId: int("from_account_id").notNull(),
+  toAccountId: int("to_account_id").notNull(),
+  date: text("date").notNull(),
+  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  description: text("description"),
+  reference: text("reference"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+export type BankTransferRow = typeof bankTransfersTable.$inferSelect;

@@ -9,6 +9,9 @@ import accountantRouter from "./accountant";
 import controllingRouter from "./controlling";
 import automationRouter from "./automation";
 import remindersRouter from "./reminders";
+import itemsRouter from "./items";
+import taxesRouter from "./taxes";
+import reportsRouter from "./reports";
 import auditRouter from "./audit";
 import pdfRouter from "./pdf";
 
@@ -24,6 +27,9 @@ router.use(accountantRouter);
 router.use(controllingRouter);
 router.use(automationRouter);
 router.use(remindersRouter);
+router.use(itemsRouter);
+router.use(taxesRouter);
+router.use(reportsRouter);
 router.use(auditRouter);
 router.use(pdfRouter);
 

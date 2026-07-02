@@ -2647,3 +2647,349 @@ export const ListReminderLogResponseItem = zod.object({
 export const ListReminderLogResponse = zod.array(ListReminderLogResponseItem)
 
 
+export const ListItemsQueryParams = zod.object({
+  "type": zod.coerce.string().optional()
+})
+
+export const ListItemsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "itemType": zod.string(),
+  "sku": zod.string().nullish(),
+  "unit": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "sellingPrice": zod.number(),
+  "costPrice": zod.number(),
+  "taxRateId": zod.number().nullish(),
+  "taxRateName": zod.string().nullish(),
+  "taxRatePercent": zod.number().nullish(),
+  "trackInventory": zod.boolean(),
+  "stockOnHand": zod.number(),
+  "reorderLevel": zod.number().nullish(),
+  "belowReorder": zod.boolean(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const ListItemsResponse = zod.array(ListItemsResponseItem)
+
+
+export const CreateItemBody = zod.object({
+  "name": zod.string(),
+  "itemType": zod.string().optional(),
+  "sku": zod.string().optional(),
+  "unit": zod.string().optional(),
+  "description": zod.string().optional(),
+  "sellingPrice": zod.number().optional(),
+  "costPrice": zod.number().optional(),
+  "taxRateId": zod.number().nullish(),
+  "trackInventory": zod.boolean().optional(),
+  "stockOnHand": zod.number().optional(),
+  "reorderLevel": zod.number().nullish(),
+  "isActive": zod.boolean().optional()
+})
+
+
+export const GetItemParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetItemResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "itemType": zod.string(),
+  "sku": zod.string().nullish(),
+  "unit": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "sellingPrice": zod.number(),
+  "costPrice": zod.number(),
+  "taxRateId": zod.number().nullish(),
+  "taxRateName": zod.string().nullish(),
+  "taxRatePercent": zod.number().nullish(),
+  "trackInventory": zod.boolean(),
+  "stockOnHand": zod.number(),
+  "reorderLevel": zod.number().nullish(),
+  "belowReorder": zod.boolean(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+export const UpdateItemParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateItemBody = zod.object({
+  "name": zod.string(),
+  "itemType": zod.string().optional(),
+  "sku": zod.string().optional(),
+  "unit": zod.string().optional(),
+  "description": zod.string().optional(),
+  "sellingPrice": zod.number().optional(),
+  "costPrice": zod.number().optional(),
+  "taxRateId": zod.number().nullish(),
+  "trackInventory": zod.boolean().optional(),
+  "stockOnHand": zod.number().optional(),
+  "reorderLevel": zod.number().nullish(),
+  "isActive": zod.boolean().optional()
+})
+
+export const UpdateItemResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "itemType": zod.string(),
+  "sku": zod.string().nullish(),
+  "unit": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "sellingPrice": zod.number(),
+  "costPrice": zod.number(),
+  "taxRateId": zod.number().nullish(),
+  "taxRateName": zod.string().nullish(),
+  "taxRatePercent": zod.number().nullish(),
+  "trackInventory": zod.boolean(),
+  "stockOnHand": zod.number(),
+  "reorderLevel": zod.number().nullish(),
+  "belowReorder": zod.boolean(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+export const DeleteItemParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const ListTaxRatesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "rate": zod.number(),
+  "taxType": zod.string(),
+  "isCompound": zod.boolean(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const ListTaxRatesResponse = zod.array(ListTaxRatesResponseItem)
+
+
+export const CreateTaxRateBody = zod.object({
+  "name": zod.string(),
+  "rate": zod.number(),
+  "taxType": zod.string().optional(),
+  "isCompound": zod.boolean().optional(),
+  "isActive": zod.boolean().optional()
+})
+
+
+export const GetTaxRateParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetTaxRateResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "rate": zod.number(),
+  "taxType": zod.string(),
+  "isCompound": zod.boolean(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+export const UpdateTaxRateParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateTaxRateBody = zod.object({
+  "name": zod.string(),
+  "rate": zod.number(),
+  "taxType": zod.string().optional(),
+  "isCompound": zod.boolean().optional(),
+  "isActive": zod.boolean().optional()
+})
+
+export const UpdateTaxRateResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "rate": zod.number(),
+  "taxType": zod.string(),
+  "isCompound": zod.boolean(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+export const DeleteTaxRateParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Transition a draft invoice to sent
+ */
+export const MarkInvoiceSentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const MarkInvoiceSentResponse = zod.object({
+  "id": zod.number(),
+  "invoiceNumber": zod.string(),
+  "customerId": zod.number(),
+  "customerName": zod.string(),
+  "date": zod.string(),
+  "dueDate": zod.string(),
+  "status": zod.string(),
+  "subtotal": zod.number(),
+  "taxAmount": zod.number(),
+  "total": zod.number(),
+  "amountPaid": zod.number(),
+  "amountDue": zod.number(),
+  "notes": zod.string().nullish(),
+  "lineItems": zod.array(zod.object({
+  "description": zod.string(),
+  "quantity": zod.number(),
+  "unitPrice": zod.number(),
+  "taxRate": zod.number().optional(),
+  "amount": zod.number(),
+  "accountId": zod.number().nullish()
+})),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Apply a payment against an invoice
+ */
+export const RecordInvoicePaymentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RecordInvoicePaymentBody = zod.object({
+  "amount": zod.number(),
+  "date": zod.string().optional(),
+  "paymentMethod": zod.string().optional(),
+  "reference": zod.string().optional()
+})
+
+export const RecordInvoicePaymentResponse = zod.object({
+  "id": zod.number(),
+  "invoiceNumber": zod.string(),
+  "customerId": zod.number(),
+  "customerName": zod.string(),
+  "date": zod.string(),
+  "dueDate": zod.string(),
+  "status": zod.string(),
+  "subtotal": zod.number(),
+  "taxAmount": zod.number(),
+  "total": zod.number(),
+  "amountPaid": zod.number(),
+  "amountDue": zod.number(),
+  "notes": zod.string().nullish(),
+  "lineItems": zod.array(zod.object({
+  "description": zod.string(),
+  "quantity": zod.number(),
+  "unitPrice": zod.number(),
+  "taxRate": zod.number().optional(),
+  "amount": zod.number(),
+  "accountId": zod.number().nullish()
+})),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Void (cancel) an invoice
+ */
+export const VoidInvoiceParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const VoidInvoiceResponse = zod.object({
+  "id": zod.number(),
+  "invoiceNumber": zod.string(),
+  "customerId": zod.number(),
+  "customerName": zod.string(),
+  "date": zod.string(),
+  "dueDate": zod.string(),
+  "status": zod.string(),
+  "subtotal": zod.number(),
+  "taxAmount": zod.number(),
+  "total": zod.number(),
+  "amountPaid": zod.number(),
+  "amountDue": zod.number(),
+  "notes": zod.string().nullish(),
+  "lineItems": zod.array(zod.object({
+  "description": zod.string(),
+  "quantity": zod.number(),
+  "unitPrice": zod.number(),
+  "taxRate": zod.number().optional(),
+  "amount": zod.number(),
+  "accountId": zod.number().nullish()
+})),
+  "createdAt": zod.string()
+})
+
+
+export const ListBankTransfersResponseItem = zod.object({
+  "id": zod.number(),
+  "fromAccountId": zod.number(),
+  "toAccountId": zod.number(),
+  "fromAccountName": zod.string().nullish(),
+  "toAccountName": zod.string().nullish(),
+  "date": zod.string(),
+  "amount": zod.number(),
+  "description": zod.string().nullish(),
+  "reference": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListBankTransfersResponse = zod.array(ListBankTransfersResponseItem)
+
+
+export const CreateBankTransferBody = zod.object({
+  "fromAccountId": zod.number(),
+  "toAccountId": zod.number(),
+  "date": zod.string().optional(),
+  "amount": zod.number(),
+  "description": zod.string().optional(),
+  "reference": zod.string().optional()
+})
+
+
+export const GetProfitAndLossQueryParams = zod.object({
+  "fromDate": zod.coerce.string().optional(),
+  "toDate": zod.coerce.string().optional()
+})
+
+export const GetProfitAndLossResponse = zod.object({
+  "fromDate": zod.string(),
+  "toDate": zod.string(),
+  "revenue": zod.number(),
+  "costs": zod.number(),
+  "netProfit": zod.number(),
+  "revenueByCustomer": zod.array(zod.object({
+  "customerId": zod.number(),
+  "customerName": zod.string().nullish(),
+  "amount": zod.number()
+})),
+  "expensesByCategory": zod.array(zod.object({
+  "category": zod.string(),
+  "amount": zod.number()
+}))
+})
+
+
+export const GetTrialBalanceResponse = zod.object({
+  "asOf": zod.string(),
+  "rows": zod.array(zod.object({
+  "accountId": zod.number(),
+  "code": zod.string(),
+  "name": zod.string(),
+  "type": zod.string(),
+  "debit": zod.number(),
+  "credit": zod.number()
+})),
+  "totalDebit": zod.number(),
+  "totalCredit": zod.number(),
+  "balanced": zod.boolean()
+})
+
+

@@ -115,3 +115,19 @@ Schema: `lib/db/src/schema/controlling.ts` · API: `artifacts/api-server/src/rou
   without the overhead of a distributed ledger. See `docs/sources/` (`audit.pdf`) for
   the blockchain framing this distils.
 - **Bulk Updates** (Accountant) — verify/complete coverage in the journals bulk flows.
+
+---
+
+## Zoho-parity wave 1 (FABLE) — ✅ Built
+
+Built per `docs/ZOHO_BOOKS_BLUEPRINT.md`, contract-first, all writes audit-anchored:
+
+| Feature | Blueprint | Route |
+|---------|-----------|-------|
+| Items & basic inventory (goods/services, SKU, prices, tax link, stock + reorder alerts) | §5 | `/items` |
+| Tax Rates (VAT/GST/sales tax/withholding, compound flag) | §6 | `/accountant/tax-rates` |
+| Invoice lifecycle & payment application (draft→sent→partially_paid→paid, void, overpay/void-paid guards; payments create linked `payments_received` rows) | §1 | `/sales/invoices` actions |
+| Bank fund transfers (double-entry: two ledger transactions + both balances updated) | §3 | Banking page → Transfer Funds |
+| Financial reports: P&L (accrual, ex-tax, date range, by-customer/by-category, CSV export) + Trial Balance (debit/credit by account type, balance check) | §7 | `/reports/financial` |
+| Recurring automation engine (profiles → scheduler mints draft invoices; run-now; pause/resume) | §8.3 | `/automation/recurring-profiles` |
+| Payment reminders / dunning (offset/repeat rules, templated messages, dry-run preview, dispatch log) | §1/§8.4 | `/automation/payment-reminders` |

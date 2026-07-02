@@ -319,6 +319,70 @@ router.delete("/invoices/:id", async (req, res): Promise<void> => {
   res.sendStatus(204);
 });
 
+router.post("/invoices/:id/mark-sent", async (req, res): Promise<void> => {
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
+  const [inv] = await db.select().from(invoicesTable).where(eq(invoicesTable.id, id));
+  if (!inv) { res.status(404).json({ error: "Invoice not found" }); return; }
+  if (inv.status !== "draft") { res.status(409).json({ error: `Cannot mark as sent: invoice is already '${inv.status}'` }); return; }
+  await db.update(invoicesTable).set({ status: "sent" }).where(eq(invoicesTable.id, id));
+  const [updated] = await db.select().from(invoicesTable).where(eq(invoicesTable.id, id));
+  const name = await getCustomerName(updated.customerId);
+  res.json(formatInvoice(updated, name));
+});
+
+router.post("/invoices/:id/record-payment", async (req, res): Promise<void> => {
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
+  const [inv] = await db.select().from(invoicesTable).where(eq(invoicesTable.id, id));
+  if (!inv) { res.status(404).json({ error: "Invoice not found" }); return; }
+  if (!["sent", "partially_paid"].includes(inv.status)) {
+    res.status(409).json({ error: `Cannot record payment: invoice status is '${inv.status}'` }); return;
+  }
+  const { amount, date, paymentMethod, reference } = req.body;
+  if (typeof amount !== "number" || amount <= 0) {
+    res.status(400).json({ error: "amount must be a positive number" }); return;
+  }
+  const currentDue = parseFloat(String(inv.amountDue));
+  if (amount > currentDue + 0.005) {
+    res.status(400).json({ error: `Payment amount ${amount} exceeds amount due ${currentDue}` }); return;
+  }
+  const currentPaid = parseFloat(String(inv.amountPaid));
+  const newPaid = currentPaid + amount;
+  const newDue = currentDue - amount;
+  const isPaid = newDue <= 0.005;
+  const newStatus = isPaid ? "paid" : "partially_paid";
+  const newAmountDue = isPaid ? "0" : String(newDue);
+  const today = new Date().toISOString().split("T")[0];
+  const payDate = date ?? today;
+  await db.update(invoicesTable).set({
+    amountPaid: String(newPaid),
+    amountDue: newAmountDue,
+    status: newStatus,
+  }).where(eq(invoicesTable.id, id));
+  await db.insert(paymentsReceivedTable).values({
+    customerId: inv.customerId,
+    date: payDate,
+    amount: String(amount),
+    paymentMethod: paymentMethod ?? "bank_transfer",
+    reference: reference ?? null,
+    invoiceId: id,
+  }).$returningId();
+  const [updated] = await db.select().from(invoicesTable).where(eq(invoicesTable.id, id));
+  const name = await getCustomerName(updated.customerId);
+  res.json(formatInvoice(updated, name));
+});
+
+router.post("/invoices/:id/void", async (req, res): Promise<void> => {
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
+  const [inv] = await db.select().from(invoicesTable).where(eq(invoicesTable.id, id));
+  if (!inv) { res.status(404).json({ error: "Invoice not found" }); return; }
+  if (inv.status === "paid") { res.status(409).json({ error: "Cannot void a paid invoice" }); return; }
+  if (inv.status === "cancelled") { res.status(409).json({ error: "Invoice is already cancelled" }); return; }
+  await db.update(invoicesTable).set({ status: "cancelled", amountDue: "0" }).where(eq(invoicesTable.id, id));
+  const [updated] = await db.select().from(invoicesTable).where(eq(invoicesTable.id, id));
+  const name = await getCustomerName(updated.customerId);
+  res.json(formatInvoice(updated, name));
+});
+
 // ── SALES RECEIPTS ────────────────────────────────────────────────────────────
 router.get("/sales-receipts", async (req, res): Promise<void> => {
   const { customerId } = req.query;

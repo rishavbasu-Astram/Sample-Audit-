@@ -21,17 +21,22 @@ import {
   useListBankTransactions,
   useCreateBankAccount,
   useCreateBankTransaction,
+  useListBankTransfers,
+  useCreateBankTransfer,
   getListBankAccountsQueryKey,
   getListBankTransactionsQueryKey,
+  getListBankTransfersQueryKey,
 } from "@workspace/api-client-react";
 import type {
   BankAccount,
   BankTransaction,
   BankAccountInput,
   BankTransactionInput,
+  BankTransfer,
+  BankTransferInput,
 } from "@workspace/api-client-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Building2, Plus } from "lucide-react";
+import { ArrowLeftRight, Building2, Plus } from "lucide-react";
 
 const ACCOUNT_TYPES = ["Checking", "Savings", "Credit Card", "Cash", "Other"];
 const CURRENCIES = ["USD", "EUR", "GBP", "AED", "SAR", "JPY", "CAD", "AUD"];
@@ -51,10 +56,20 @@ export function BankingPage() {
   const qc = useQueryClient();
   const { data: accounts, isLoading: isLoadingAccounts } = useListBankAccounts();
   const { data: transactions, isLoading: isLoadingTransactions } = useListBankTransactions();
+  const { data: transfers, isLoading: isLoadingTransfers } = useListBankTransfers();
 
   // Account form state
   const [accountFormOpen, setAccountFormOpen] = useState(false);
   const [accountForm, setAccountForm] = useState<BankAccountInput>(EMPTY_ACCOUNT);
+
+  // Transfer form state
+  const [transferFormOpen, setTransferFormOpen] = useState(false);
+  const [transferFromId, setTransferFromId] = useState("");
+  const [transferToId, setTransferToId] = useState("");
+  const [transferAmount, setTransferAmount] = useState("");
+  const [transferDate, setTransferDate] = useState(today());
+  const [transferDescription, setTransferDescription] = useState("");
+  const [transferReference, setTransferReference] = useState("");
 
   // Transaction form state
   const [txFormOpen, setTxFormOpen] = useState(false);
@@ -74,6 +89,17 @@ export function BankingPage() {
     },
   });
 
+  const createTransferMutation = useCreateBankTransfer({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListBankTransfersQueryKey() });
+        qc.invalidateQueries({ queryKey: getListBankAccountsQueryKey() });
+        qc.invalidateQueries({ queryKey: getListBankTransactionsQueryKey() });
+        setTransferFormOpen(false);
+      },
+    },
+  });
+
   const createTxMutation = useCreateBankTransaction({
     mutation: {
       onSuccess: () => {
@@ -83,6 +109,29 @@ export function BankingPage() {
       },
     },
   });
+
+  function openTransferForm() {
+    setTransferFromId("");
+    setTransferToId("");
+    setTransferAmount("");
+    setTransferDate(today());
+    setTransferDescription("");
+    setTransferReference("");
+    setTransferFormOpen(true);
+  }
+
+  function handleCreateTransfer() {
+    if (!transferFromId || !transferToId || !transferAmount) return;
+    const payload: BankTransferInput = {
+      fromAccountId: parseInt(transferFromId, 10),
+      toAccountId: parseInt(transferToId, 10),
+      amount: parseFloat(transferAmount),
+      date: transferDate || undefined,
+      description: transferDescription || undefined,
+      reference: transferReference || undefined,
+    };
+    createTransferMutation.mutate({ data: payload });
+  }
 
   function setAccountField(field: keyof BankAccountInput, value: string | number) {
     setAccountForm((f) => ({ ...f, [field]: value }));
@@ -118,6 +167,21 @@ export function BankingPage() {
     createTxMutation.mutate({ data: payload });
   }
 
+  const transferColumns = [
+    { header: "Date", cell: (item: BankTransfer) => formatDate(item.date) },
+    { header: "From", cell: (item: BankTransfer) => item.fromAccountName ?? String(item.fromAccountId) },
+    { header: "To", cell: (item: BankTransfer) => item.toAccountName ?? String(item.toAccountId) },
+    {
+      header: "Amount",
+      cell: (item: BankTransfer) => <span className="font-medium text-red-600">{formatCurrency(item.amount)}</span>,
+    },
+    {
+      header: "Reference / Description",
+      cell: (item: BankTransfer) =>
+        item.reference || item.description || <span className="text-muted-foreground">—</span>,
+    },
+  ];
+
   const txColumns = [
     { header: "Date", cell: (item: BankTransaction) => formatDate(item.date) },
     { header: "Description", accessorKey: "description" as const },
@@ -147,6 +211,13 @@ export function BankingPage() {
       actionLabel="Add Account"
       onAction={() => { setAccountForm(EMPTY_ACCOUNT); setAccountFormOpen(true); }}
     >
+      {/* Page-level secondary actions */}
+      <div className="flex justify-end mb-4">
+        <Button variant="outline" onClick={openTransferForm}>
+          <ArrowLeftRight className="h-4 w-4 mr-2" /> Transfer Funds
+        </Button>
+      </div>
+
       {/* Bank accounts grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
         {isLoadingAccounts ? (
@@ -204,6 +275,95 @@ export function BankingPage() {
         emptyTitle="No transactions"
         emptyDescription="Add a transaction to see it recorded here."
       />
+
+      {/* Recent Transfers */}
+      <Card className="mt-6">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-base font-semibold">Recent Transfers</CardTitle>
+          <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            columns={transferColumns}
+            data={transfers}
+            isLoading={isLoadingTransfers}
+            emptyTitle="No transfers"
+            emptyDescription="Use Transfer Funds to move money between accounts."
+          />
+        </CardContent>
+      </Card>
+
+      {/* Transfer Funds dialog */}
+      <FormDialog
+        open={transferFormOpen}
+        onOpenChange={setTransferFormOpen}
+        title="Transfer Funds"
+        description="Move money between two bank accounts."
+        onSubmit={handleCreateTransfer}
+        isSubmitting={createTransferMutation.isPending}
+        submitLabel="Transfer"
+        size="md"
+      >
+        <div className="grid grid-cols-2 gap-4">
+          <div className="col-span-2 space-y-1.5">
+            <Label>From Account *</Label>
+            <Select value={transferFromId} onValueChange={(v) => { setTransferFromId(v); if (transferToId === v) setTransferToId(""); }}>
+              <SelectTrigger><SelectValue placeholder="Select source account" /></SelectTrigger>
+              <SelectContent>
+                {(accounts ?? []).map((a) => (
+                  <SelectItem key={a.id} value={String(a.id)}>
+                    {a.name}{a.bankName ? ` — ${a.bankName}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="col-span-2 space-y-1.5">
+            <Label>To Account *</Label>
+            <Select value={transferToId} onValueChange={setTransferToId}>
+              <SelectTrigger><SelectValue placeholder="Select destination account" /></SelectTrigger>
+              <SelectContent>
+                {(accounts ?? []).filter((a) => String(a.id) !== transferFromId).map((a) => (
+                  <SelectItem key={a.id} value={String(a.id)}>
+                    {a.name}{a.bankName ? ` — ${a.bankName}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Amount *</Label>
+            <Input
+              type="number"
+              min={0.01}
+              step="0.01"
+              value={transferAmount}
+              onChange={(e) => setTransferAmount(e.target.value)}
+              placeholder="0.00"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Date</Label>
+            <Input type="date" value={transferDate} onChange={(e) => setTransferDate(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Reference</Label>
+            <Input
+              value={transferReference}
+              onChange={(e) => setTransferReference(e.target.value)}
+              placeholder="e.g. TRF-001"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Description</Label>
+            <Input
+              value={transferDescription}
+              onChange={(e) => setTransferDescription(e.target.value)}
+              placeholder="Optional note"
+            />
+          </div>
+        </div>
+      </FormDialog>
 
       {/* Add Account dialog */}
       <FormDialog

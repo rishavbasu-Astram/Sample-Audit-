@@ -1052,6 +1052,140 @@ export interface ReminderRunResult {
   generated: number;
 }
 
+export interface Item {
+  id: number;
+  name: string;
+  itemType: string;
+  /** @nullable */
+  sku?: string | null;
+  /** @nullable */
+  unit?: string | null;
+  /** @nullable */
+  description?: string | null;
+  sellingPrice: number;
+  costPrice: number;
+  /** @nullable */
+  taxRateId?: number | null;
+  /** @nullable */
+  taxRateName?: string | null;
+  /** @nullable */
+  taxRatePercent?: number | null;
+  trackInventory: boolean;
+  stockOnHand: number;
+  /** @nullable */
+  reorderLevel?: number | null;
+  belowReorder: boolean;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface ItemInput {
+  name: string;
+  itemType?: string;
+  sku?: string;
+  unit?: string;
+  description?: string;
+  sellingPrice?: number;
+  costPrice?: number;
+  /** @nullable */
+  taxRateId?: number | null;
+  trackInventory?: boolean;
+  stockOnHand?: number;
+  /** @nullable */
+  reorderLevel?: number | null;
+  isActive?: boolean;
+}
+
+export interface TaxRate {
+  id: number;
+  name: string;
+  rate: number;
+  taxType: string;
+  isCompound: boolean;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface TaxRateInput {
+  name: string;
+  rate: number;
+  taxType?: string;
+  isCompound?: boolean;
+  isActive?: boolean;
+}
+
+export interface RecordPaymentInput {
+  amount: number;
+  date?: string;
+  paymentMethod?: string;
+  reference?: string;
+}
+
+export interface BankTransfer {
+  id: number;
+  fromAccountId: number;
+  toAccountId: number;
+  /** @nullable */
+  fromAccountName?: string | null;
+  /** @nullable */
+  toAccountName?: string | null;
+  date: string;
+  amount: number;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  reference?: string | null;
+  createdAt: string;
+}
+
+export interface BankTransferInput {
+  fromAccountId: number;
+  toAccountId: number;
+  date?: string;
+  amount: number;
+  description?: string;
+  reference?: string;
+}
+
+export interface PnlCategoryRow {
+  category: string;
+  amount: number;
+}
+
+export interface PnlCustomerRow {
+  customerId: number;
+  /** @nullable */
+  customerName?: string | null;
+  amount: number;
+}
+
+export interface PnlReport {
+  fromDate: string;
+  toDate: string;
+  revenue: number;
+  costs: number;
+  netProfit: number;
+  revenueByCustomer: PnlCustomerRow[];
+  expensesByCategory: PnlCategoryRow[];
+}
+
+export interface TrialBalanceRow {
+  accountId: number;
+  code: string;
+  name: string;
+  type: string;
+  debit: number;
+  credit: number;
+}
+
+export interface TrialBalanceReport {
+  asOf: string;
+  rows: TrialBalanceRow[];
+  totalDebit: number;
+  totalCredit: number;
+  balanced: boolean;
+}
+
 export type GetCashFlowParams = {
 period?: GetCashFlowPeriod;
 };
@@ -1164,5 +1298,14 @@ active?: string;
 
 export type ListReminderLogParams = {
 limit?: number;
+};
+
+export type ListItemsParams = {
+type?: string;
+};
+
+export type GetProfitAndLossParams = {
+fromDate?: string;
+toDate?: string;
 };
 

@@ -39,6 +39,10 @@ tags:
   - name: profitability
   - name: recurring-profiles
   - name: payment-reminders
+  - name: items
+  - name: tax-rates
+  - name: bank-transfers
+  - name: reports
 
 paths:
   /healthz:
@@ -2677,6 +2681,304 @@ paths:
                 items:
                   $ref: "#/components/schemas/ReminderLogEntry"
 
+  /items:
+    get:
+      operationId: listItems
+      tags: [items]
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Item"
+    post:
+      operationId: createItem
+      tags: [items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+
+  /items/{id}:
+    get:
+      operationId: getItem
+      tags: [items]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+    patch:
+      operationId: updateItem
+      tags: [items]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+    delete:
+      operationId: deleteItem
+      tags: [items]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /tax-rates:
+    get:
+      operationId: listTaxRates
+      tags: [tax-rates]
+      responses:
+        "200":
+          description: List of tax rates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TaxRate"
+    post:
+      operationId: createTaxRate
+      tags: [tax-rates]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaxRateInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxRate"
+
+  /tax-rates/{id}:
+    get:
+      operationId: getTaxRate
+      tags: [tax-rates]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tax rate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxRate"
+    patch:
+      operationId: updateTaxRate
+      tags: [tax-rates]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaxRateInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxRate"
+    delete:
+      operationId: deleteTaxRate
+      tags: [tax-rates]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /invoices/{id}/mark-sent:
+    post:
+      operationId: markInvoiceSent
+      tags: [invoices]
+      summary: Transition a draft invoice to sent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  /invoices/{id}/record-payment:
+    post:
+      operationId: recordInvoicePayment
+      tags: [invoices]
+      summary: Apply a payment against an invoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecordPaymentInput"
+      responses:
+        "200":
+          description: Updated invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  /invoices/{id}/void:
+    post:
+      operationId: voidInvoice
+      tags: [invoices]
+      summary: Void (cancel) an invoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  /bank-transfers:
+    get:
+      operationId: listBankTransfers
+      tags: [bank-transfers]
+      responses:
+        "200":
+          description: List of fund transfers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BankTransfer"
+    post:
+      operationId: createBankTransfer
+      tags: [bank-transfers]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BankTransferInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankTransfer"
+
+  /reports/profit-and-loss:
+    get:
+      operationId: getProfitAndLoss
+      tags: [reports]
+      parameters:
+        - name: fromDate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: toDate
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Profit & loss statement (accrual, ex-tax)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PnlReport"
+
+  /reports/trial-balance:
+    get:
+      operationId: getTrialBalance
+      tags: [reports]
+      responses:
+        "200":
+          description: Trial balance from chart-of-accounts balances
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrialBalanceReport"
+
 components:
   schemas:
     HealthStatus:
@@ -4637,3 +4939,249 @@ components:
         generated:
           type: integer
       required: [generated]
+
+    Item:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        itemType:
+          type: string
+        sku:
+          type: ["string", "null"]
+        unit:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        sellingPrice:
+          type: number
+        costPrice:
+          type: number
+        taxRateId:
+          type: ["integer", "null"]
+        taxRateName:
+          type: ["string", "null"]
+        taxRatePercent:
+          type: ["number", "null"]
+        trackInventory:
+          type: boolean
+        stockOnHand:
+          type: number
+        reorderLevel:
+          type: ["number", "null"]
+        belowReorder:
+          type: boolean
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        [
+          id,
+          name,
+          itemType,
+          sellingPrice,
+          costPrice,
+          trackInventory,
+          stockOnHand,
+          belowReorder,
+          isActive,
+          createdAt,
+        ]
+
+    ItemInput:
+      type: object
+      properties:
+        name:
+          type: string
+        itemType:
+          type: string
+        sku:
+          type: string
+        unit:
+          type: string
+        description:
+          type: string
+        sellingPrice:
+          type: number
+        costPrice:
+          type: number
+        taxRateId:
+          type: ["integer", "null"]
+        trackInventory:
+          type: boolean
+        stockOnHand:
+          type: number
+        reorderLevel:
+          type: ["number", "null"]
+        isActive:
+          type: boolean
+      required: [name]
+
+    TaxRate:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        rate:
+          type: number
+        taxType:
+          type: string
+        isCompound:
+          type: boolean
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, name, rate, taxType, isCompound, isActive, createdAt]
+
+    TaxRateInput:
+      type: object
+      properties:
+        name:
+          type: string
+        rate:
+          type: number
+        taxType:
+          type: string
+        isCompound:
+          type: boolean
+        isActive:
+          type: boolean
+      required: [name, rate]
+
+    RecordPaymentInput:
+      type: object
+      properties:
+        amount:
+          type: number
+        date:
+          type: string
+        paymentMethod:
+          type: string
+        reference:
+          type: string
+      required: [amount]
+
+    BankTransfer:
+      type: object
+      properties:
+        id:
+          type: integer
+        fromAccountId:
+          type: integer
+        toAccountId:
+          type: integer
+        fromAccountName:
+          type: ["string", "null"]
+        toAccountName:
+          type: ["string", "null"]
+        date:
+          type: string
+        amount:
+          type: number
+        description:
+          type: ["string", "null"]
+        reference:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required: [id, fromAccountId, toAccountId, date, amount, createdAt]
+
+    BankTransferInput:
+      type: object
+      properties:
+        fromAccountId:
+          type: integer
+        toAccountId:
+          type: integer
+        date:
+          type: string
+        amount:
+          type: number
+        description:
+          type: string
+        reference:
+          type: string
+      required: [fromAccountId, toAccountId, amount]
+
+    PnlCategoryRow:
+      type: object
+      properties:
+        category:
+          type: string
+        amount:
+          type: number
+      required: [category, amount]
+
+    PnlCustomerRow:
+      type: object
+      properties:
+        customerId:
+          type: integer
+        customerName:
+          type: ["string", "null"]
+        amount:
+          type: number
+      required: [customerId, amount]
+
+    PnlReport:
+      type: object
+      properties:
+        fromDate:
+          type: string
+        toDate:
+          type: string
+        revenue:
+          type: number
+        costs:
+          type: number
+        netProfit:
+          type: number
+        revenueByCustomer:
+          type: array
+          items:
+            $ref: "#/components/schemas/PnlCustomerRow"
+        expensesByCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/PnlCategoryRow"
+      required: [fromDate, toDate, revenue, costs, netProfit, revenueByCustomer, expensesByCategory]
+
+    TrialBalanceRow:
+      type: object
+      properties:
+        accountId:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        debit:
+          type: number
+        credit:
+          type: number
+      required: [accountId, code, name, type, debit, credit]
+
+    TrialBalanceReport:
+      type: object
+      properties:
+        asOf:
+          type: string
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrialBalanceRow"
+        totalDebit:
+          type: number
+        totalCredit:
+          type: number
+        balanced:
+          type: boolean
+      required: [asOf, rows, totalDebit, totalCredit, balanced]
