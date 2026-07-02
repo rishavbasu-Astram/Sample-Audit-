@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { db, auditLogTable, type AuditLog } from "@workspace/db";
 import { desc, asc } from "drizzle-orm";
+import { dispatchWebhookEvent } from "./webhooks";
 
 /** Genesis predecessor hash for the first entry in the chain. */
 const GENESIS = "0".repeat(64);
@@ -62,6 +63,15 @@ export async function appendAudit(input: AuditInput): Promise<void> {
   const hash = computeHash(prevHash, canonical(row));
 
   await db.insert(auditLogTable).values({ ...row, prevHash, hash });
+
+  void dispatchWebhookEvent(`${row.entityType}.${row.action}`, {
+    entityType: row.entityType,
+    entityId: row.entityId,
+    action: row.action,
+    actor: row.actor,
+    ts: row.ts,
+    payload: row.payload ?? null,
+  }).catch(() => {});
 }
 
 export interface VerifyResult {

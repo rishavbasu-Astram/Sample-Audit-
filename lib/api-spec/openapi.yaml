@@ -43,6 +43,9 @@ tags:
   - name: tax-rates
   - name: bank-transfers
   - name: reports
+  - name: reconciliation
+  - name: inventory
+  - name: webhooks
 
 paths:
   /healthz:
@@ -2979,6 +2982,334 @@ paths:
               schema:
                 $ref: "#/components/schemas/TrialBalanceReport"
 
+  /statement-lines:
+    get:
+      operationId: listStatementLines
+      tags: [reconciliation]
+      parameters:
+        - name: accountId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Imported bank statement lines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StatementLine"
+
+  /statement-imports:
+    post:
+      operationId: importStatement
+      tags: [reconciliation]
+      summary: Import a batch of bank statement lines for an account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatementImportInput"
+      responses:
+        "201":
+          description: Import result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatementImportResult"
+
+  /statement-lines/{id}/match:
+    post:
+      operationId: matchStatementLine
+      tags: [reconciliation]
+      summary: Manually match a statement line to a ledger transaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MatchInput"
+      responses:
+        "200":
+          description: Updated statement line
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatementLine"
+
+  /statement-lines/{id}/unmatch:
+    post:
+      operationId: unmatchStatementLine
+      tags: [reconciliation]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated statement line
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatementLine"
+
+  /statement-lines/{id}:
+    delete:
+      operationId: deleteStatementLine
+      tags: [reconciliation]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /bank-accounts/{id}/auto-match:
+    post:
+      operationId: autoMatchStatementLines
+      tags: [reconciliation]
+      summary: Auto-match unmatched lines to ledger transactions (amount + type + date window)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Auto-match result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutoMatchResult"
+
+  /bank-accounts/{id}/reconcile:
+    post:
+      operationId: reconcileAccount
+      tags: [reconciliation]
+      summary: Lock in all matched lines as reconciled
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reconcile result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReconcileResult"
+
+  /bank-accounts/{id}/reconciliation:
+    get:
+      operationId: getReconciliationSummary
+      tags: [reconciliation]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reconciliation summary for the account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReconciliationSummary"
+
+  /inventory/movements:
+    get:
+      operationId: listInventoryMovements
+      tags: [inventory]
+      parameters:
+        - name: itemId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Inventory movements (newest first)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InventoryMovement"
+    post:
+      operationId: createInventoryMovement
+      tags: [inventory]
+      summary: Record a purchase/sale/adjustment/opening movement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InventoryMovementInput"
+      responses:
+        "201":
+          description: Created movement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryMovement"
+
+  /inventory/valuation:
+    get:
+      operationId: getInventoryValuation
+      tags: [inventory]
+      summary: Weighted-average valuation and COGS per tracked item
+      responses:
+        "200":
+          description: Valuation report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryValuationReport"
+
+  /webhooks:
+    get:
+      operationId: listWebhooks
+      tags: [webhooks]
+      responses:
+        "200":
+          description: Registered webhooks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Webhook"
+    post:
+      operationId: createWebhook
+      tags: [webhooks]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Webhook"
+
+  /webhooks/{id}:
+    get:
+      operationId: getWebhook
+      tags: [webhooks]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Webhook
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Webhook"
+    patch:
+      operationId: updateWebhook
+      tags: [webhooks]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Webhook"
+    delete:
+      operationId: deleteWebhook
+      tags: [webhooks]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /webhooks/{id}/test:
+    post:
+      operationId: testWebhook
+      tags: [webhooks]
+      summary: Fire a test.PING event at this webhook and return the delivery record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Delivery result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookDelivery"
+
+  /webhook-deliveries:
+    get:
+      operationId: listWebhookDeliveries
+      tags: [webhooks]
+      parameters:
+        - name: webhookId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Recent webhook deliveries (newest first)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WebhookDelivery"
+
 components:
   schemas:
     HealthStatus:
@@ -5191,3 +5522,248 @@ components:
         balanced:
           type: boolean
       required: [asOf, rows, totalDebit, totalCredit, balanced]
+
+    StatementLine:
+      type: object
+      properties:
+        id:
+          type: integer
+        accountId:
+          type: integer
+        accountName:
+          type: ["string", "null"]
+        date:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        type:
+          type: string
+        reference:
+          type: ["string", "null"]
+        status:
+          type: string
+        matchedTransactionId:
+          type: ["integer", "null"]
+        matchedTransactionDescription:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required: [id, accountId, date, description, amount, type, status, createdAt]
+
+    StatementLineInput:
+      type: object
+      properties:
+        date:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        type:
+          type: string
+        reference:
+          type: string
+      required: [date, description, amount, type]
+
+    StatementImportInput:
+      type: object
+      properties:
+        accountId:
+          type: integer
+        lines:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatementLineInput"
+      required: [accountId, lines]
+
+    StatementImportResult:
+      type: object
+      properties:
+        imported:
+          type: integer
+      required: [imported]
+
+    MatchInput:
+      type: object
+      properties:
+        transactionId:
+          type: integer
+      required: [transactionId]
+
+    AutoMatchResult:
+      type: object
+      properties:
+        matched:
+          type: integer
+      required: [matched]
+
+    ReconcileResult:
+      type: object
+      properties:
+        reconciled:
+          type: integer
+      required: [reconciled]
+
+    ReconciliationSummary:
+      type: object
+      properties:
+        accountId:
+          type: integer
+        accountName:
+          type: string
+        ledgerBalance:
+          type: number
+        unmatched:
+          type: integer
+        matched:
+          type: integer
+        reconciled:
+          type: integer
+        unmatchedNet:
+          type: number
+      required: [accountId, accountName, ledgerBalance, unmatched, matched, reconciled, unmatchedNet]
+
+    InventoryMovement:
+      type: object
+      properties:
+        id:
+          type: integer
+        itemId:
+          type: integer
+        itemName:
+          type: ["string", "null"]
+        movementType:
+          type: string
+        quantity:
+          type: number
+        unitCost:
+          type: number
+        totalValue:
+          type: number
+        date:
+          type: string
+        reference:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required: [id, itemId, movementType, quantity, unitCost, totalValue, date, createdAt]
+
+    InventoryMovementInput:
+      type: object
+      properties:
+        itemId:
+          type: integer
+        movementType:
+          type: string
+        quantity:
+          type: number
+        unitCost:
+          type: number
+        date:
+          type: string
+        reference:
+          type: string
+        notes:
+          type: string
+      required: [itemId, movementType, quantity]
+
+    ItemValuationRow:
+      type: object
+      properties:
+        itemId:
+          type: integer
+        itemName:
+          type: string
+        sku:
+          type: ["string", "null"]
+        quantityOnHand:
+          type: number
+        avgUnitCost:
+          type: number
+        stockValue:
+          type: number
+        cogsToDate:
+          type: number
+      required: [itemId, itemName, quantityOnHand, avgUnitCost, stockValue, cogsToDate]
+
+    InventoryValuationReport:
+      type: object
+      properties:
+        asOf:
+          type: string
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemValuationRow"
+        totalStockValue:
+          type: number
+        totalCogs:
+          type: number
+      required: [asOf, rows, totalStockValue, totalCogs]
+
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        url:
+          type: string
+        events:
+          type: array
+          items:
+            type: string
+        hasSecret:
+          type: boolean
+        active:
+          type: boolean
+        deliveryCount:
+          type: integer
+        createdAt:
+          type: string
+      required: [id, name, url, events, hasSecret, active, deliveryCount, createdAt]
+
+    WebhookInput:
+      type: object
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+        events:
+          type: array
+          items:
+            type: string
+        secret:
+          type: string
+        active:
+          type: boolean
+      required: [name, url]
+
+    WebhookDelivery:
+      type: object
+      properties:
+        id:
+          type: integer
+        webhookId:
+          type: integer
+        webhookName:
+          type: ["string", "null"]
+        event:
+          type: string
+        status:
+          type: string
+        responseCode:
+          type: ["integer", "null"]
+        error:
+          type: ["string", "null"]
+        durationMs:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+      required: [id, webhookId, event, status, createdAt]

@@ -131,3 +131,22 @@ Built per `docs/ZOHO_BOOKS_BLUEPRINT.md`, contract-first, all writes audit-ancho
 | Financial reports: P&L (accrual, ex-tax, date range, by-customer/by-category, CSV export) + Trial Balance (debit/credit by account type, balance check) | §7 | `/reports/financial` |
 | Recurring automation engine (profiles → scheduler mints draft invoices; run-now; pause/resume) | §8.3 | `/automation/recurring-profiles` |
 | Payment reminders / dunning (offset/repeat rules, templated messages, dry-run preview, dispatch log) | §1/§8.4 | `/automation/payment-reminders` |
+
+---
+
+## Zoho-parity wave 2 (FABLE) — ✅ Built
+
+| Feature | Blueprint | Route |
+|---------|-----------|-------|
+| Bank reconciliation (CSV statement import, deterministic auto-match on amount+type+±3-day window, manual match/unmatch, reconcile lock, per-account summary) | §3 | `/banking/reconciliation` |
+| Inventory valuation & COGS (movement ledger: opening/purchase/sale/adjustment; weighted-average replay; auto-bootstrap of opening balances from seeded stock; overdraw + untracked-item guards; `items.stockOnHand` kept in sync) | §5 | `/inventory/valuation` |
+| Webhooks event platform (register URLs with event filters `entity.ACTION` / `entity.*` / `*`; HMAC-SHA256 signed payloads; 5s timeout; delivery log with status/code/duration; test-fire; **every audited mutation fans out automatically** via the audit seam — zero per-route code) | §8 | `/automation/webhooks` |
+
+Wave-2 design notes:
+- Webhook events mirror the hash-chained audit ledger one-to-one, so external
+  systems see exactly what the ledger records — better than Zoho's per-module
+  webhook wiring.
+- Reconciliation keeps a strict status machine per line
+  (unmatched → matched → reconciled); reconciled lines are immutable.
+- Valuation treats the movement ledger as the single source of truth; legacy
+  seeded stock is folded in via an auto-generated opening movement on first use.

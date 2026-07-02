@@ -8,4 +8,7 @@ export * from "./automation";
 export * from "./reminders";
 export * from "./items";
 export * from "./taxes";
+export * from "./reconciliation";
+export * from "./inventory";
+export * from "./webhooks";
 export * from "./audit";

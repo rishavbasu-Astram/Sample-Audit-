@@ -45,6 +45,8 @@ import {
   Package,
   Percent,
   BarChart3,
+  CheckCheck,
+  Webhook,
   ShieldCheck
 } from "lucide-react";
 
@@ -63,6 +65,7 @@ export function AppSidebar() {
       title: "Inventory",
       items: [
         { title: "Items", url: "/items", icon: Package },
+        { title: "Valuation & COGS", url: "/inventory/valuation", icon: Boxes },
       ]
     },
     {
@@ -98,6 +101,7 @@ export function AppSidebar() {
       title: "Banking",
       items: [
         { title: "Accounts & Transactions", url: "/banking", icon: Landmark },
+        { title: "Reconciliation", url: "/banking/reconciliation", icon: CheckCheck },
       ]
     },
     {
@@ -128,6 +132,7 @@ export function AppSidebar() {
       items: [
         { title: "Recurring Profiles", url: "/automation/recurring-profiles", icon: Repeat },
         { title: "Payment Reminders", url: "/automation/payment-reminders", icon: Bell },
+        { title: "Webhooks", url: "/automation/webhooks", icon: Webhook },
       ]
     },
     {

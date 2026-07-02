@@ -12,6 +12,9 @@ import remindersRouter from "./reminders";
 import itemsRouter from "./items";
 import taxesRouter from "./taxes";
 import reportsRouter from "./reports";
+import reconciliationRouter from "./reconciliation";
+import inventoryRouter from "./inventory";
+import webhooksRouter from "./webhooks";
 import auditRouter from "./audit";
 import pdfRouter from "./pdf";
 
@@ -30,6 +33,9 @@ router.use(remindersRouter);
 router.use(itemsRouter);
 router.use(taxesRouter);
 router.use(reportsRouter);
+router.use(reconciliationRouter);
+router.use(inventoryRouter);
+router.use(webhooksRouter);
 router.use(auditRouter);
 router.use(pdfRouter);
 

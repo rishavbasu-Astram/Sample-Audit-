@@ -2995,3 +2995,289 @@ export const GetTrialBalanceResponse = zod.object({
 })
 
 
+export const ListStatementLinesQueryParams = zod.object({
+  "accountId": zod.coerce.number().optional(),
+  "status": zod.coerce.string().optional()
+})
+
+export const ListStatementLinesResponseItem = zod.object({
+  "id": zod.number(),
+  "accountId": zod.number(),
+  "accountName": zod.string().nullish(),
+  "date": zod.string(),
+  "description": zod.string(),
+  "amount": zod.number(),
+  "type": zod.string(),
+  "reference": zod.string().nullish(),
+  "status": zod.string(),
+  "matchedTransactionId": zod.number().nullish(),
+  "matchedTransactionDescription": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListStatementLinesResponse = zod.array(ListStatementLinesResponseItem)
+
+
+/**
+ * @summary Import a batch of bank statement lines for an account
+ */
+export const ImportStatementBody = zod.object({
+  "accountId": zod.number(),
+  "lines": zod.array(zod.object({
+  "date": zod.string(),
+  "description": zod.string(),
+  "amount": zod.number(),
+  "type": zod.string(),
+  "reference": zod.string().optional()
+}))
+})
+
+
+/**
+ * @summary Manually match a statement line to a ledger transaction
+ */
+export const MatchStatementLineParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const MatchStatementLineBody = zod.object({
+  "transactionId": zod.number()
+})
+
+export const MatchStatementLineResponse = zod.object({
+  "id": zod.number(),
+  "accountId": zod.number(),
+  "accountName": zod.string().nullish(),
+  "date": zod.string(),
+  "description": zod.string(),
+  "amount": zod.number(),
+  "type": zod.string(),
+  "reference": zod.string().nullish(),
+  "status": zod.string(),
+  "matchedTransactionId": zod.number().nullish(),
+  "matchedTransactionDescription": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+export const UnmatchStatementLineParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UnmatchStatementLineResponse = zod.object({
+  "id": zod.number(),
+  "accountId": zod.number(),
+  "accountName": zod.string().nullish(),
+  "date": zod.string(),
+  "description": zod.string(),
+  "amount": zod.number(),
+  "type": zod.string(),
+  "reference": zod.string().nullish(),
+  "status": zod.string(),
+  "matchedTransactionId": zod.number().nullish(),
+  "matchedTransactionDescription": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+export const DeleteStatementLineParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Auto-match unmatched lines to ledger transactions (amount + type + date window)
+ */
+export const AutoMatchStatementLinesParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AutoMatchStatementLinesResponse = zod.object({
+  "matched": zod.number()
+})
+
+
+/**
+ * @summary Lock in all matched lines as reconciled
+ */
+export const ReconcileAccountParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ReconcileAccountResponse = zod.object({
+  "reconciled": zod.number()
+})
+
+
+export const GetReconciliationSummaryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetReconciliationSummaryResponse = zod.object({
+  "accountId": zod.number(),
+  "accountName": zod.string(),
+  "ledgerBalance": zod.number(),
+  "unmatched": zod.number(),
+  "matched": zod.number(),
+  "reconciled": zod.number(),
+  "unmatchedNet": zod.number()
+})
+
+
+export const ListInventoryMovementsQueryParams = zod.object({
+  "itemId": zod.coerce.number().optional()
+})
+
+export const ListInventoryMovementsResponseItem = zod.object({
+  "id": zod.number(),
+  "itemId": zod.number(),
+  "itemName": zod.string().nullish(),
+  "movementType": zod.string(),
+  "quantity": zod.number(),
+  "unitCost": zod.number(),
+  "totalValue": zod.number(),
+  "date": zod.string(),
+  "reference": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListInventoryMovementsResponse = zod.array(ListInventoryMovementsResponseItem)
+
+
+/**
+ * @summary Record a purchase/sale/adjustment/opening movement
+ */
+export const CreateInventoryMovementBody = zod.object({
+  "itemId": zod.number(),
+  "movementType": zod.string(),
+  "quantity": zod.number(),
+  "unitCost": zod.number().optional(),
+  "date": zod.string().optional(),
+  "reference": zod.string().optional(),
+  "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary Weighted-average valuation and COGS per tracked item
+ */
+export const GetInventoryValuationResponse = zod.object({
+  "asOf": zod.string(),
+  "rows": zod.array(zod.object({
+  "itemId": zod.number(),
+  "itemName": zod.string(),
+  "sku": zod.string().nullish(),
+  "quantityOnHand": zod.number(),
+  "avgUnitCost": zod.number(),
+  "stockValue": zod.number(),
+  "cogsToDate": zod.number()
+})),
+  "totalStockValue": zod.number(),
+  "totalCogs": zod.number()
+})
+
+
+export const ListWebhooksResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "url": zod.string(),
+  "events": zod.array(zod.string()),
+  "hasSecret": zod.boolean(),
+  "active": zod.boolean(),
+  "deliveryCount": zod.number(),
+  "createdAt": zod.string()
+})
+export const ListWebhooksResponse = zod.array(ListWebhooksResponseItem)
+
+
+export const CreateWebhookBody = zod.object({
+  "name": zod.string(),
+  "url": zod.string(),
+  "events": zod.array(zod.string()).optional(),
+  "secret": zod.string().optional(),
+  "active": zod.boolean().optional()
+})
+
+
+export const GetWebhookParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetWebhookResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "url": zod.string(),
+  "events": zod.array(zod.string()),
+  "hasSecret": zod.boolean(),
+  "active": zod.boolean(),
+  "deliveryCount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+export const UpdateWebhookParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateWebhookBody = zod.object({
+  "name": zod.string(),
+  "url": zod.string(),
+  "events": zod.array(zod.string()).optional(),
+  "secret": zod.string().optional(),
+  "active": zod.boolean().optional()
+})
+
+export const UpdateWebhookResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "url": zod.string(),
+  "events": zod.array(zod.string()),
+  "hasSecret": zod.boolean(),
+  "active": zod.boolean(),
+  "deliveryCount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+export const DeleteWebhookParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Fire a test.PING event at this webhook and return the delivery record
+ */
+export const TestWebhookParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const TestWebhookResponse = zod.object({
+  "id": zod.number(),
+  "webhookId": zod.number(),
+  "webhookName": zod.string().nullish(),
+  "event": zod.string(),
+  "status": zod.string(),
+  "responseCode": zod.number().nullish(),
+  "error": zod.string().nullish(),
+  "durationMs": zod.number().nullish(),
+  "createdAt": zod.string()
+})
+
+
+export const ListWebhookDeliveriesQueryParams = zod.object({
+  "webhookId": zod.coerce.number().optional()
+})
+
+export const ListWebhookDeliveriesResponseItem = zod.object({
+  "id": zod.number(),
+  "webhookId": zod.number(),
+  "webhookName": zod.string().nullish(),
+  "event": zod.string(),
+  "status": zod.string(),
+  "responseCode": zod.number().nullish(),
+  "error": zod.string().nullish(),
+  "durationMs": zod.number().nullish(),
+  "createdAt": zod.string()
+})
+export const ListWebhookDeliveriesResponse = zod.array(ListWebhookDeliveriesResponseItem)
+
+

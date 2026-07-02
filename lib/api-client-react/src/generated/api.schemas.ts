@@ -1191,6 +1191,144 @@ export interface TrialBalanceReport {
   balanced: boolean;
 }
 
+export interface StatementLine {
+  id: number;
+  accountId: number;
+  /** @nullable */
+  accountName?: string | null;
+  date: string;
+  description: string;
+  amount: number;
+  type: string;
+  /** @nullable */
+  reference?: string | null;
+  status: string;
+  /** @nullable */
+  matchedTransactionId?: number | null;
+  /** @nullable */
+  matchedTransactionDescription?: string | null;
+  createdAt: string;
+}
+
+export interface StatementLineInput {
+  date: string;
+  description: string;
+  amount: number;
+  type: string;
+  reference?: string;
+}
+
+export interface StatementImportInput {
+  accountId: number;
+  lines: StatementLineInput[];
+}
+
+export interface StatementImportResult {
+  imported: number;
+}
+
+export interface MatchInput {
+  transactionId: number;
+}
+
+export interface AutoMatchResult {
+  matched: number;
+}
+
+export interface ReconcileResult {
+  reconciled: number;
+}
+
+export interface ReconciliationSummary {
+  accountId: number;
+  accountName: string;
+  ledgerBalance: number;
+  unmatched: number;
+  matched: number;
+  reconciled: number;
+  unmatchedNet: number;
+}
+
+export interface InventoryMovement {
+  id: number;
+  itemId: number;
+  /** @nullable */
+  itemName?: string | null;
+  movementType: string;
+  quantity: number;
+  unitCost: number;
+  totalValue: number;
+  date: string;
+  /** @nullable */
+  reference?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface InventoryMovementInput {
+  itemId: number;
+  movementType: string;
+  quantity: number;
+  unitCost?: number;
+  date?: string;
+  reference?: string;
+  notes?: string;
+}
+
+export interface ItemValuationRow {
+  itemId: number;
+  itemName: string;
+  /** @nullable */
+  sku?: string | null;
+  quantityOnHand: number;
+  avgUnitCost: number;
+  stockValue: number;
+  cogsToDate: number;
+}
+
+export interface InventoryValuationReport {
+  asOf: string;
+  rows: ItemValuationRow[];
+  totalStockValue: number;
+  totalCogs: number;
+}
+
+export interface Webhook {
+  id: number;
+  name: string;
+  url: string;
+  events: string[];
+  hasSecret: boolean;
+  active: boolean;
+  deliveryCount: number;
+  createdAt: string;
+}
+
+export interface WebhookInput {
+  name: string;
+  url: string;
+  events?: string[];
+  secret?: string;
+  active?: boolean;
+}
+
+export interface WebhookDelivery {
+  id: number;
+  webhookId: number;
+  /** @nullable */
+  webhookName?: string | null;
+  event: string;
+  status: string;
+  /** @nullable */
+  responseCode?: number | null;
+  /** @nullable */
+  error?: string | null;
+  /** @nullable */
+  durationMs?: number | null;
+  createdAt: string;
+}
+
 export type GetCashFlowParams = {
 period?: GetCashFlowPeriod;
 };
@@ -1312,5 +1450,18 @@ type?: string;
 export type GetProfitAndLossParams = {
 fromDate?: string;
 toDate?: string;
+};
+
+export type ListStatementLinesParams = {
+accountId?: number;
+status?: string;
+};
+
+export type ListInventoryMovementsParams = {
+itemId?: number;
+};
+
+export type ListWebhookDeliveriesParams = {
+webhookId?: number;
 };
 

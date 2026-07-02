@@ -45,6 +45,10 @@ import { ItemsPage } from "@/pages/items/items";
 import { TaxRatesPage } from "@/pages/accountant/tax-rates";
 import { FinancialReportsPage } from "@/pages/reports/financial-reports";
 
+import { ReconciliationPage } from "@/pages/banking/reconciliation";
+import { InventoryValuationPage } from "@/pages/items/valuation";
+import { WebhooksPage } from "@/pages/automation/webhooks";
+
 import { AuditLedgerPage } from "@/pages/audit/ledger";
 
 import NotFound from "@/pages/not-found";
@@ -112,9 +116,16 @@ function Router() {
 
         {/* Inventory */}
         <Route path="/items" component={ItemsPage} />
+        <Route path="/inventory/valuation" component={InventoryValuationPage} />
 
         {/* Taxes */}
         <Route path="/accountant/tax-rates" component={TaxRatesPage} />
+
+        {/* Banking */}
+        <Route path="/banking/reconciliation" component={ReconciliationPage} />
+
+        {/* Automation platform */}
+        <Route path="/automation/webhooks" component={WebhooksPage} />
 
         {/* Reports */}
         <Route path="/reports/financial" component={FinancialReportsPage} />
