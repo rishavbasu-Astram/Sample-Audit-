@@ -10,6 +10,7 @@ import {
   type ReminderLog,
 } from "@workspace/db";
 import { runDueReminders } from "../lib/reminders";
+import { emailProviderConfigured } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -22,7 +23,9 @@ function serializeRule(r: ReminderRule) {
 // Manual, synchronous dispatch — the deterministic verification path.
 router.post("/reminders/run-now", async (_req, res): Promise<void> => {
   const { generated } = await runDueReminders({ dryRun: false });
-  res.status(201).json({ generated });
+  // 'live' = a real email provider is configured (sends happen); 'simulated' =
+  // no provider, deliveries are logged only.
+  res.status(201).json({ generated, delivery: emailProviderConfigured() ? "live" : "simulated" });
 });
 
 // Dry-run: what would fire right now, without sending or logging anything.
@@ -64,6 +67,7 @@ router.get("/reminders/log", async (req, res): Promise<void> => {
       dueDate: r.dueDate,
       amountDue: parseFloat(String(r.amountDue)),
       channel: r.channel,
+      recipient: r.recipient ?? null,
       subject: r.subject,
       message: r.message,
       status: r.status,

@@ -8,4 +8,5 @@
 
 export interface ReminderRunResult {
   generated: number;
+  delivery: string;
 }

@@ -19,6 +19,8 @@ export interface ReminderLogEntry {
   dueDate: string;
   amountDue: number;
   channel: string;
+  /** @nullable */
+  recipient?: string | null;
   subject: string;
   message: string;
   status: string;

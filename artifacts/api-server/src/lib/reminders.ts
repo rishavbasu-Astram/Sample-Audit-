@@ -8,6 +8,7 @@ import {
   type ReminderRule,
 } from "@workspace/db";
 import { appendAudit } from "./audit";
+import { sendEmail } from "./email";
 import { logger } from "./logger";
 
 // ── Date helpers (invoice dates are 'YYYY-MM-DD' text) ────────────────────────
@@ -34,6 +35,7 @@ export interface DueReminder {
   ruleName: string;
   customerId: number;
   customerName: string | null;
+  customerEmail: string | null;
   occurrenceDate: string;
   dueDate: string;
   amountDue: number;
@@ -66,14 +68,33 @@ function occurrenceDates(rule: ReminderRule, dueDate: string, today: string): st
   return dates;
 }
 
-// Delivery seam. Stubbed: record intent to the log + app logger. Swap this for a
-// real email/SMS provider later — the rendered subject/body/channel are ready.
-function deliverReminder(r: DueReminder): "sent" | "failed" {
+export type DeliveryStatus = "sent" | "failed" | "simulated" | "skipped";
+
+// Delivery seam. For channel 'email' this sends via the configured provider
+// (or returns 'simulated' when none is configured — see lib/email.ts). A rule
+// targeting email with no address on file is 'skipped'. Non-email channels
+// (sms/log) remain stubbed in this slice.
+async function deliverReminder(r: DueReminder): Promise<DeliveryStatus> {
+  if (r.channel === "email") {
+    if (!r.customerEmail) {
+      logger.warn(
+        { invoice: r.invoiceNumber, customer: r.customerName },
+        "payment reminder skipped — no email on file",
+      );
+      return "skipped";
+    }
+    const result = await sendEmail({ to: r.customerEmail, subject: r.subject, text: r.message });
+    logger.info(
+      { channel: r.channel, invoice: r.invoiceNumber, to: r.customerEmail, status: result.status },
+      "payment reminder delivery",
+    );
+    return result.status;
+  }
   logger.info(
     { channel: r.channel, invoice: r.invoiceNumber, customer: r.customerName, occurrenceDate: r.occurrenceDate },
     "payment reminder dispatched (stub delivery)",
   );
-  return "sent";
+  return "simulated";
 }
 
 // ── Core scan ─────────────────────────────────────────────────────────────────
@@ -98,9 +119,9 @@ export async function runDueReminders(opts: { dryRun?: boolean } = {}): Promise<
 
   const custIds = [...new Set(openInvoices.map((i) => i.customerId))];
   const customers = custIds.length
-    ? await db.select({ id: customersTable.id, name: customersTable.name }).from(customersTable).where(inArray(customersTable.id, custIds))
+    ? await db.select({ id: customersTable.id, name: customersTable.name, email: customersTable.email }).from(customersTable).where(inArray(customersTable.id, custIds))
     : [];
-  const nameById = new Map(customers.map((c) => [c.id, c.name]));
+  const custById = new Map(customers.map((c) => [c.id, c]));
 
   // Existing log rows for these invoices → dedup key set "invoiceId|ruleId|occurrenceDate".
   const invIds = openInvoices.map((i) => i.id);
@@ -115,7 +136,9 @@ export async function runDueReminders(opts: { dryRun?: boolean } = {}): Promise<
   const due: DueReminder[] = [];
   for (const inv of openInvoices) {
     const amountDue = parseFloat(String(inv.amountDue));
-    const customerName = nameById.get(inv.customerId) ?? null;
+    const cust = custById.get(inv.customerId);
+    const customerName = cust?.name ?? null;
+    const customerEmail = cust?.email ?? null;
     for (const rule of rules) {
       for (const occ of occurrenceDates(rule, inv.dueDate, today)) {
         if (fired.has(`${inv.id}|${rule.id}|${occ}`)) continue;
@@ -135,6 +158,7 @@ export async function runDueReminders(opts: { dryRun?: boolean } = {}): Promise<
           ruleName: rule.name,
           customerId: inv.customerId,
           customerName,
+          customerEmail,
           occurrenceDate: occ,
           dueDate: inv.dueDate,
           amountDue,
@@ -149,10 +173,14 @@ export async function runDueReminders(opts: { dryRun?: boolean } = {}): Promise<
 
   if (opts.dryRun) return { generated: 0, due };
 
+  // Each outcome (sent/failed/simulated/skipped) is logged against the dedup key
+  // invoiceId|ruleId|occurrenceDate, so an occurrence fires at most once. Note:
+  // 'skipped' (no email) and 'failed' therefore do NOT auto-retry that occurrence
+  // — a known limitation; repeat-rules simply try again on the next occurrence.
   let generated = 0;
   for (const r of due) {
     try {
-      const status = deliverReminder(r);
+      const status = await deliverReminder(r);
       await db.insert(reminderLogTable).values({
         invoiceId: r.invoiceId,
         ruleId: r.ruleId,
@@ -161,6 +189,7 @@ export async function runDueReminders(opts: { dryRun?: boolean } = {}): Promise<
         dueDate: r.dueDate,
         amountDue: String(r.amountDue),
         channel: r.channel,
+        recipient: r.customerEmail,
         subject: r.subject,
         message: r.message,
         status,
@@ -171,9 +200,9 @@ export async function runDueReminders(opts: { dryRun?: boolean } = {}): Promise<
         action: "CREATE",
         entityType: "reminder_log",
         entityId: String(r.invoiceId),
-        payload: { invoiceNumber: r.invoiceNumber, ruleId: r.ruleId, occurrenceDate: r.occurrenceDate, channel: r.channel, status },
+        payload: { invoiceNumber: r.invoiceNumber, ruleId: r.ruleId, occurrenceDate: r.occurrenceDate, channel: r.channel, recipient: r.customerEmail, status },
       });
-      generated++;
+      if (status === "sent" || status === "simulated") generated++;
     } catch (err) {
       logger.error({ err, invoiceId: r.invoiceId, ruleId: r.ruleId }, "reminder dispatch failed");
     }

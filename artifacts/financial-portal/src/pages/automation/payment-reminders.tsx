@@ -88,6 +88,17 @@ function PreviewDialog({ open, onClose }: { open: boolean; onClose: () => void }
           columns={[
             { header: "Invoice", cell: (d) => <span className="font-mono text-xs">{d.invoiceNumber}</span> },
             { header: "Customer", cell: (d) => d.customerName ?? "—" },
+            {
+              header: "To",
+              cell: (d) =>
+                d.customerEmail ? (
+                  <span className="text-xs">{d.customerEmail}</span>
+                ) : d.channel === "email" ? (
+                  <span className="text-xs text-amber-600">no email on file</span>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                ),
+            },
             { header: "Occurrence", cell: (d) => formatDate(d.occurrenceDate) },
             {
               header: "Overdue",
@@ -183,6 +194,11 @@ export function PaymentRemindersPage() {
   const logColumns = [
     { header: "Invoice", cell: (l: ReminderLogEntry) => <span className="font-mono text-xs">{l.invoiceNumber ?? "—"}</span> },
     { header: "Customer", cell: (l: ReminderLogEntry) => l.customerName ?? "—" },
+    {
+      header: "To",
+      cell: (l: ReminderLogEntry) =>
+        l.recipient ? <span className="text-xs">{l.recipient}</span> : <span className="text-muted-foreground">—</span>,
+    },
     { header: "Occurrence", cell: (l: ReminderLogEntry) => formatDate(l.occurrenceDate) },
     { header: "Amount", cell: (l: ReminderLogEntry) => <span className="font-medium">{formatCurrency(l.amountDue)}</span> },
     { header: "Channel", cell: (l: ReminderLogEntry) => <span className="capitalize">{l.channel}</span> },
@@ -207,10 +223,15 @@ export function PaymentRemindersPage() {
         </Button>
         {runNowMutation.data && (
           <span className="self-center text-sm text-muted-foreground">
-            Last run dispatched {runNowMutation.data.generated} reminder{runNowMutation.data.generated === 1 ? "" : "s"}.
+            Last run dispatched {runNowMutation.data.generated} reminder{runNowMutation.data.generated === 1 ? "" : "s"}
+            {runNowMutation.data.delivery === "live" ? " (live email)" : " (simulated — no email provider configured)"}.
           </span>
         )}
       </div>
+      <p className="mb-4 text-xs text-muted-foreground">
+        Email delivery is <strong>simulated</strong> (logged only) unless <code>RESEND_API_KEY</code> and <code>EMAIL_FROM</code>
+        {" "}are set in the server environment. When configured, the background engine emails overdue-invoice customers automatically.
+      </p>
 
       <Card className="mb-6">
         <CardHeader>

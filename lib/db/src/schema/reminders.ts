@@ -46,9 +46,10 @@ export const reminderLogTable = mysqlTable("reminder_log", {
   dueDate: text("due_date").notNull(),
   amountDue: decimal("amount_due", { precision: 15, scale: 2 }).notNull(),
   channel: text("channel").notNull(),
+  recipient: text("recipient"), // resolved email address (null when none on file / non-email channel)
   subject: text("subject").notNull(),
   message: text("message").notNull(),
-  status: text("status").notNull().default("sent"), // sent|failed
+  status: text("status").notNull().default("sent"), // sent|failed|simulated|skipped
   sentAt: timestamp("sent_at").notNull().defaultNow(),
 });
 

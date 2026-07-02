@@ -1020,6 +1020,8 @@ export interface DueReminder {
   customerId: number;
   /** @nullable */
   customerName?: string | null;
+  /** @nullable */
+  customerEmail?: string | null;
   occurrenceDate: string;
   dueDate: string;
   amountDue: number;
@@ -1042,6 +1044,8 @@ export interface ReminderLogEntry {
   dueDate: string;
   amountDue: number;
   channel: string;
+  /** @nullable */
+  recipient?: string | null;
   subject: string;
   message: string;
   status: string;
@@ -1050,6 +1054,7 @@ export interface ReminderLogEntry {
 
 export interface ReminderRunResult {
   generated: number;
+  delivery: string;
 }
 
 export interface Item {

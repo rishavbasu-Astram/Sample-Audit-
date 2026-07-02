@@ -14,6 +14,8 @@ export interface DueReminder {
   customerId: number;
   /** @nullable */
   customerName?: string | null;
+  /** @nullable */
+  customerEmail?: string | null;
   occurrenceDate: string;
   dueDate: string;
   amountDue: number;
